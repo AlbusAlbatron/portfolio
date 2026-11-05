@@ -1,4 +1,4 @@
-<div class="cursor" data-cursor-root aria-hidden="true">
+<div class="cursor" data-cursor-root aria-hidden="true" transition:persist="cursor">
   <div class="cursor__ring" data-cursor-ring><span class="cursor__label" data-cursor-label></span></div>
   <div class="cursor__dot" data-cursor-dot></div>
 </div>
@@ -68,7 +68,8 @@
   }
 
   .cursor__label {
-    position: relative;
+    position: absolute;
+    white-space: nowrap;
     font-family: var(--font-mono);
     font-size: 0.7rem;
     letter-spacing: 0.06em;

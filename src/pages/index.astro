@@ -2,6 +2,13 @@
 import Base from '../layouts/Base.astro';
 import ProjectList from '../components/ProjectList.astro';
 import SplitText from '../components/SplitText.astro';
+
+const info = [
+  { label: 'Based in', value: 'Limerick, Ireland', clock: true },
+  { label: 'Studying', value: 'Immersive Software Engineering, UL' },
+  { label: 'Building', value: 'Low-level tools in C & Win32' },
+  { label: 'Off the clock', value: 'American football, films' },
+];
 ---
 
 <Base>
@@ -16,14 +23,34 @@ import SplitText from '../components/SplitText.astro';
       <a class="button" href="/projects/wingravity">Play with WinGravity</a>
       <a class="button button--ghost" href="/about">About me</a>
     </div>
+    <dl class="hero__info">
+      {
+        info.map((item, i) => (
+          <div class="hero__fact" data-reveal style={`--reveal-delay: ${300 + i * 80}`}>
+            <dt class="label">{item.label}</dt>
+            <dd>
+              {item.value}
+              {item.clock && (
+                <>
+                  {' '}
+                  <span class="hero__clock" data-clock hidden>
+                    · <time />
+                  </span>
+                </>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
   </section>
 
-  <section class="wrap section" aria-labelledby="work" data-surface="cream">
+  <section class="wrap section" aria-labelledby="work" data-surface="light">
     <h2 id="work" class="label section__label" data-reveal>Selected work</h2>
     <ProjectList />
   </section>
 
-  <section class="wrap section teaser" aria-labelledby="more" data-surface="cream">
+  <section class="wrap section teaser" aria-labelledby="more" data-surface="light">
     <h2 id="more" class="label section__label" data-reveal>Off the keyboard</h2>
     <p class="teaser__text" data-reveal>
       When I'm not writing C, I'm playing American football for UL or watching films.
@@ -35,9 +62,86 @@ import SplitText from '../components/SplitText.astro';
   </section>
 </Base>
 
+<script>
+  let timer: number | undefined;
+
+  const format = new Intl.DateTimeFormat('en-IE', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Dublin',
+  });
+
+  document.addEventListener('astro:page-load', () => {
+    const clock = document.querySelector<HTMLElement>('[data-clock]');
+    if (!clock) return;
+    const time = clock.querySelector('time')!;
+    const tick = () => (time.textContent = format.format(new Date()));
+    tick();
+    clock.hidden = false;
+    timer = window.setInterval(tick, 30_000);
+  });
+
+  document.addEventListener('astro:before-swap', () => clearInterval(timer));
+</script>
+
 <style>
   .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem);
+    grid-template-areas:
+      'label label'
+      'name info'
+      'intro info'
+      'actions info';
+    column-gap: clamp(2rem, 6vw, 5rem);
     padding-block: clamp(4rem, 14vw, 10rem) clamp(3rem, 8vw, 6rem);
+  }
+
+  .hero > .label {
+    grid-area: label;
+  }
+
+  .hero__name {
+    grid-area: name;
+  }
+
+  .hero__intro {
+    grid-area: intro;
+  }
+
+  .hero > .hero__actions {
+    grid-area: actions;
+  }
+
+  .hero__info {
+    grid-area: info;
+    align-self: center;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .hero__fact {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hero__fact dd {
+    margin: 0.3rem 0 0;
+  }
+
+  .hero__clock time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 48rem) {
+    .hero {
+      grid-template-columns: 1fr;
+      grid-template-areas: 'label' 'name' 'intro' 'actions' 'info';
+    }
+
+    .hero__info {
+      margin-top: 3rem;
+    }
   }
 
   .hero__name {

@@ -26,7 +26,7 @@ export function initSmooth() {
   const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   if (!reduce && fine) {
-    lenis = new Lenis({ autoRaf: true, anchors: true, lerp: 0.11 });
+    lenis = new Lenis({ autoRaf: true, anchors: true, lerp: 0.2 });
     lenis.on('scroll', updateParallax);
   } else if (!reduce) {
     window.addEventListener('scroll', updateParallax, { passive: true });

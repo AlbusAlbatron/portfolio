@@ -46,8 +46,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <slot />
     </main>
     <Footer />
-    <Cursor transition:persist="cursor" />
-    <PageWipe transition:persist="wipe" />
+    <Cursor />
+    <PageWipe />
     <script>
       import { initReveal } from '../scripts/reveal';
       import { initSurface } from '../scripts/surface';

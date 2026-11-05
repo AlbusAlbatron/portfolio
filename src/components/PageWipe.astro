@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
 };
 ---
 
-<div class="wipe" data-wipe data-labels={JSON.stringify(labels)} hidden aria-hidden="true">
+<div class="wipe" data-wipe data-labels={JSON.stringify(labels)} hidden aria-hidden="true" transition:persist="wipe">
   <span class="wipe__label" data-wipe-label></span>
 </div>
 

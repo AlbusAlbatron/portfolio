@@ -1,4 +1,4 @@
-const THEME_COLOR = { dark: '#26201b', cream: '#efe6d6' } as const;
+const THEME_COLOR = { dark: '#26201b', light: '#f7f4ef' } as const;
 type Surface = keyof typeof THEME_COLOR;
 
 let observer: IntersectionObserver | undefined;
@@ -18,7 +18,7 @@ export function initSurface() {
     (entries) => {
       for (const entry of entries) {
         const surface = (entry.target as HTMLElement).dataset.surface;
-        if (entry.isIntersecting && (surface === 'dark' || surface === 'cream')) setSurface(surface);
+        if (entry.isIntersecting && (surface === 'dark' || surface === 'light')) setSurface(surface);
       }
     },
     // A thin band a quarter of the way down: short dark headers stay dark on load.

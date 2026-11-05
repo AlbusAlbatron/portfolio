@@ -2,9 +2,9 @@
 @property --bg-raised { syntax: '<color>'; inherits: true; initial-value: #312a24; }
 @property --bg-sunken { syntax: '<color>'; inherits: true; initial-value: #1e1915; }
 @property --line { syntax: '<color>'; inherits: true; initial-value: #463d35; }
-@property --text { syntax: '<color>'; inherits: true; initial-value: #f1e7d6; }
-@property --text-soft { syntax: '<color>'; inherits: true; initial-value: #ddd1bd; }
-@property --text-muted { syntax: '<color>'; inherits: true; initial-value: #b3a796; }
+@property --text { syntax: '<color>'; inherits: true; initial-value: #f7f4ef; }
+@property --text-soft { syntax: '<color>'; inherits: true; initial-value: #e4ddd3; }
+@property --text-muted { syntax: '<color>'; inherits: true; initial-value: #b1a89c; }
 @property --text-faint { syntax: '<color>'; inherits: true; initial-value: #857a6c; }
 
 :root {
@@ -12,19 +12,19 @@
   --dark-raised: #312a24;
   --dark-sunken: #1e1915;
   --dark-line: #463d35;
-  --dark-text: #f1e7d6;
-  --dark-soft: #ddd1bd;
-  --dark-muted: #b3a796;
+  --dark-text: #f7f4ef;
+  --dark-soft: #e4ddd3;
+  --dark-muted: #b1a89c;
   --dark-faint: #857a6c;
 
-  --cream-bg: #efe6d6;
-  --cream-raised: #f7f0e4;
-  --cream-sunken: #e6dbc8;
-  --cream-line: #d3c5ae;
-  --cream-text: #2a2420;
-  --cream-soft: #3d352e;
-  --cream-muted: #6e6253;
-  --cream-faint: #978a78;
+  --light-bg: #f7f4ef;
+  --light-raised: #fdfcf9;
+  --light-sunken: #efeae3;
+  --light-line: #e2dbd1;
+  --light-text: #221d19;
+  --light-soft: #3a332d;
+  --light-muted: #6b6159;
+  --light-faint: #a39a8f;
 
   --font-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
@@ -32,7 +32,7 @@
   --gutter: clamp(1rem, 4vw, 3rem);
   --max: 72rem;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --surface-duration: 0.7s;
+  --surface-duration: 0.5s;
 
   color-scheme: dark;
   transition:
@@ -46,7 +46,7 @@
     --text-faint var(--surface-duration) var(--ease);
 }
 
-/* Semantic tokens: dark by default, cream when the page scrolls into a cream section. */
+/* Semantic tokens: dark by default, light when the page scrolls into a light section. */
 :root,
 .theme-dark {
   --bg: var(--dark-bg);
@@ -59,15 +59,15 @@
   --text-faint: var(--dark-faint);
 }
 
-:root[data-surface='cream'] {
-  --bg: var(--cream-bg);
-  --bg-raised: var(--cream-raised);
-  --bg-sunken: var(--cream-sunken);
-  --line: var(--cream-line);
-  --text: var(--cream-text);
-  --text-soft: var(--cream-soft);
-  --text-muted: var(--cream-muted);
-  --text-faint: var(--cream-faint);
+:root[data-surface='light'] {
+  --bg: var(--light-bg);
+  --bg-raised: var(--light-raised);
+  --bg-sunken: var(--light-sunken);
+  --line: var(--light-line);
+  --text: var(--light-text);
+  --text-soft: var(--light-soft);
+  --text-muted: var(--light-muted);
+  --text-faint: var(--light-faint);
   color-scheme: light;
 }
 
@@ -261,34 +261,43 @@ pre {
   transform: none;
 }
 
-/* Film grain. */
+/* Film grain: plain alpha noise, no blend modes, so the compositor never re-blends the page. */
 body::after {
   content: '';
   position: fixed;
-  inset: -50%;
+  inset: -40px;
   z-index: 90;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 1.2 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.09;
-  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.6 -0.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.1;
+  will-change: transform;
+  contain: strict;
   animation: grain 1s steps(8) infinite;
 }
 
-:root[data-surface='cream'] body::after {
-  opacity: 0.18;
-  mix-blend-mode: multiply;
+:root[data-surface='light'] body::after {
+  opacity: 0.12;
 }
 
 @keyframes grain {
   0% { transform: translate(0, 0); }
-  12% { transform: translate(-3%, 2%); }
-  25% { transform: translate(2%, -4%); }
-  37% { transform: translate(-4%, -1%); }
-  50% { transform: translate(3%, 3%); }
-  62% { transform: translate(-1%, 4%); }
-  75% { transform: translate(4%, -2%); }
-  87% { transform: translate(-2%, -3%); }
+  12% { transform: translate(-14px, 9px); }
+  25% { transform: translate(10px, -18px); }
+  37% { transform: translate(-19px, -4px); }
+  50% { transform: translate(13px, 15px); }
+  62% { transform: translate(-6px, 19px); }
+  75% { transform: translate(18px, -9px); }
+  87% { transform: translate(-9px, -14px); }
   100% { transform: translate(0, 0); }
+}
+
+[data-parallax] {
+  will-change: translate;
+}
+
+/* Hold incoming headline animations until the page wipe starts revealing the page. */
+html.is-wiping .split__part {
+  animation-play-state: paused;
 }
 
 /* The page wipe replaces Astro's default crossfade. */

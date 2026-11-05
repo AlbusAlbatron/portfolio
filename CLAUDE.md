@@ -10,22 +10,26 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
 - Medium interactivity: page wipe between pages, smooth scroll (Lenis), parallax, split-text headings, custom
   cursor, scroll reveals, film grain. The WinGravity page is the one deliberate showpiece. Everything must
   respect `prefers-reduced-motion`, work at ~400px, and fall back to native behaviour on touch.
-- Two surfaces, no bright accent colour: warm dark and warm cream. The whole page eases between them as you
-  scroll. Use the semantic tokens in `src/styles/global.css` (`--bg`, `--bg-raised`, `--text`, `--text-soft`,
+- Two surfaces, no bright accent colour: warm dark and warm white (`light`). The whole page eases between them
+  as you scroll. Use the semantic tokens in `src/styles/global.css` (`--bg`, `--bg-raised`, `--text`, `--text-soft`,
   `--text-muted`, `--line`, …), never hard-coded colours. `--text-faint` fails contrast: decoration only.
 - Fonts: Inter Tight (sans) + JetBrains Mono (labels), self-hosted via @fontsource.
 - Copy is in Alby's voice, first person, plain and honest — no inflated claims.
 
 ## Conventions
-- Surfaces: tag each top-level block `data-surface="dark"` or `"cream"`; every page starts with a dark header.
+- Surfaces: tag each top-level block `data-surface="dark"` or `"light"`; every page starts with a dark header.
   `src/scripts/surface.ts` switches `html[data-surface]` when a block crosses 25% down the viewport.
-  Anything that must stay dark on a cream page (WinGravity desktop, footer) gets `.theme-dark` and paints its
+  Anything that must stay dark on a light page (WinGravity desktop, footer) gets `.theme-dark` and paints its
   own `background: var(--bg)`. Code blocks use the raw `--dark-*` values.
 - Big headings: `<SplitText text="…" by="word|char" />` (staggered rise), optionally `data-parallax="0.12"`.
 - Cursor states: `data-cursor="view"` or `"drag"` on an element; links/buttons get the hover ring automatically.
 - `<html>` attributes are replaced on every navigation, so anything that adds classes to it (Lenis,
   `has-cursor`, `js`) re-adds them on `astro:after-swap`.
-- `compressHTML` is off: it strips the space between a line-wrapped word and a following inline tag.
+- `compressHTML` is off: it strips the space between a line-wrapped word and a following inline tag. The flip
+  side: markup where whitespace would show as gaps (e.g. `SplitText`'s inline-block spans) must be on one line.
+- `transition:persist` must go on an element inside a component (see `Cursor.astro`, `PageWipe.astro`); on a
+  `<Component />` tag it is silently ignored and the element is replaced on every navigation.
+- Avoid `mix-blend-mode`/`backdrop-filter` on full-screen fixed layers — they made scrolling and the cursor janky.
 - Scroll reveal: add `data-reveal` (optional `style="--reveal-delay: 120"` in ms). Handled by `src/scripts/reveal.ts`.
 - Page scripts run under the client router: initialise on `astro:page-load`, clean up on `astro:before-swap`.
 - Site-wide details (name, email, links) live in `src/data/site.ts`.

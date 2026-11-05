@@ -19,7 +19,7 @@ export function initCursor() {
   let raf = 0;
 
   const frame = () => {
-    const k = reduce.matches ? 1 : 0.2;
+    const k = reduce.matches ? 1 : 0.45;
     ringPos.x += (target.x - ringPos.x) * k;
     ringPos.y += (target.y - ringPos.y) * k;
     ring.style.transform = `translate3d(${ringPos.x}px, ${ringPos.y}px, 0)`;

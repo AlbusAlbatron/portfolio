@@ -15,20 +15,8 @@ const step = by === 'char' ? 45 : 70;
 const parts = by === 'char' ? [...text] : text.split(/\s+/);
 ---
 
-<Tag class:list={['split', className]} aria-label={text} {...rest}>
-  {
-    parts.map((part, i) => (
-      <>
-        <span class="split__mask" aria-hidden="true">
-          <span class="split__part" style={`--d: ${delay + i * step}ms`}>
-            {part}
-          </span>
-        </span>
-        {by === 'word' && i < parts.length - 1 && ' '}
-      </>
-    ))
-  }
-</Tag>
+{/* Kept on one line: any whitespace between the masks would render as gaps between letters. */}
+<Tag class:list={['split', className]} aria-label={text} {...rest}>{parts.map((part, i) => <><span class="split__mask" aria-hidden="true"><span class="split__part" style={`--d: ${delay + i * step}ms`}>{part}</span></span>{by === 'word' && i < parts.length - 1 ? ' ' : ''}</>)}</Tag>
 
 <style>
   .split__mask {
