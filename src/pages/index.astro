@@ -1,12 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
 import ProjectList from '../components/ProjectList.astro';
+import SplitText from '../components/SplitText.astro';
 ---
 
 <Base>
-  <section class="hero wrap">
+  <section class="hero wrap" data-surface="dark">
     <p class="label" data-reveal>Software engineering student — University of Limerick</p>
-    <h1 class="hero__name" data-reveal style="--reveal-delay: 80">Alby</h1>
+    <SplitText text="Alby" by="char" class="hero__name" delay={120} data-parallax="0.18" />
     <p class="hero__intro" data-reveal style="--reveal-delay: 180">
       I'm a first-year Immersive Software Engineering student. I like finding strange things to make a computer
       do — mostly in C, mostly by talking straight to Windows.
@@ -17,12 +18,12 @@ import ProjectList from '../components/ProjectList.astro';
     </div>
   </section>
 
-  <section class="wrap section" aria-labelledby="work">
+  <section class="wrap section" aria-labelledby="work" data-surface="cream">
     <h2 id="work" class="label section__label" data-reveal>Selected work</h2>
     <ProjectList />
   </section>
 
-  <section class="wrap section teaser" aria-labelledby="more">
+  <section class="wrap section teaser" aria-labelledby="more" data-surface="cream">
     <h2 id="more" class="label section__label" data-reveal>Off the keyboard</h2>
     <p class="teaser__text" data-reveal>
       When I'm not writing C, I'm playing American football for UL or watching films.
@@ -53,7 +54,7 @@ import ProjectList from '../components/ProjectList.astro';
     font-size: clamp(1.15rem, 2.4vw, 1.5rem);
     line-height: 1.4;
     letter-spacing: -0.01em;
-    color: #d6cfc4;
+    color: var(--text-soft);
   }
 
   .hero__actions {

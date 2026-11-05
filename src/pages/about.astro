@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import SplitText from '../components/SplitText.astro';
 
 // Drop a photo (jpg/png/webp) into src/assets/about/ and it appears automatically.
 const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/about/*.{jpg,jpeg,png,webp,avif}', {
@@ -17,14 +18,16 @@ const facts = [
 ---
 
 <Base title="About" description="About Alby McNamara — ISE student at UL, C programmer, American football player and film fan.">
-  <section class="wrap intro">
+  <section class="wrap intro" data-surface="dark">
     <p class="label" data-reveal>About</p>
-    <h1 data-reveal style="--reveal-delay: 80">
-      Hi, I'm Alby. I like making computers do things they weren't really meant to.
-    </h1>
+    <SplitText
+      text="Hi, I'm Alby. I like making computers do things they weren't really meant to."
+      delay={80}
+      data-parallax="0.1"
+    />
   </section>
 
-  <section class="wrap grid">
+  <section class="wrap grid" data-surface="cream">
     <div class="prose story">
       <h2 data-reveal>How I got into this</h2>
       <p data-reveal>

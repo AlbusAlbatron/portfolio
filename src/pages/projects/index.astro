@@ -1,17 +1,18 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ProjectList from '../../components/ProjectList.astro';
+import SplitText from '../../components/SplitText.astro';
 ---
 
 <Base title="Projects" description="Projects by Alby McNamara — systems programming in C and the Win32 API.">
-  <section class="wrap head">
+  <section class="wrap head" data-surface="dark">
     <p class="label" data-reveal>Projects</p>
-    <h1 data-reveal style="--reveal-delay: 80">Things I've built</h1>
+    <SplitText text="Things I've built" delay={80} data-parallax="0.12" />
     <p class="head__intro" data-reveal style="--reveal-delay: 160">
       Small tools that poke at how Windows works underneath. Each one started as "I wonder if I could…".
     </p>
   </section>
-  <section class="wrap">
+  <section class="wrap" data-surface="cream">
     <ProjectList />
   </section>
 </Base>

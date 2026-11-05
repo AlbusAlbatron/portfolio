@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import Base from '../layouts/Base.astro';
 import HoverCard from '../components/HoverCard.astro';
+import SplitText from '../components/SplitText.astro';
 import { site } from '../data/site';
 import { profile, education, skills, experience, additional, interests, type CvEntry } from '../data/cv';
 
@@ -16,9 +17,9 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
 ---
 
 <Base title="CV" description="CV of Alby McNamara — first-year Immersive Software Engineering student at the University of Limerick.">
-  <header class="wrap cvhead">
+  <header class="wrap cvhead" data-surface="dark">
     <p class="label" data-reveal>Curriculum vitae</p>
-    <h1 data-reveal style="--reveal-delay: 60">{site.name}</h1>
+    <SplitText text={site.name} delay={60} data-parallax="0.12" />
     <p class="cvhead__contact" data-reveal style="--reveal-delay: 120">
       <a href={`mailto:${site.email}`}>{site.email}</a>
       <span aria-hidden="true">·</span>
@@ -35,7 +36,7 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
     }
   </header>
 
-  <div class="wrap cv">
+  <div class="wrap cv" data-surface="cream">
     <section class="row" aria-labelledby="profile">
       <h2 id="profile" class="label row__label" data-reveal>Profile</h2>
       <ul class="row__body plain" data-reveal>
@@ -253,7 +254,7 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
   .xp__points {
     margin: 0.6rem 0 0;
     padding-left: 1.1em;
-    color: #d6cfc4;
+    color: var(--text-soft);
   }
 
   /* Touch: card expands inline under the entry when tapped. */

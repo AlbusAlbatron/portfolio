@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import { site } from '../data/site';
+
+const projects = await getCollection('projects');
+const labels: Record<string, string> = {
+  '/': site.name,
+  '/projects': 'Projects',
+  '/about': 'About',
+  '/cv': 'CV',
+  ...Object.fromEntries(projects.map((p) => [`/projects/${p.id}`, p.data.title])),
+};
+---
+
+<div class="wipe" data-wipe data-labels={JSON.stringify(labels)} hidden aria-hidden="true">
+  <span class="wipe__label" data-wipe-label></span>
+</div>
+
+<style>
+  .wipe {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    display: grid;
+    place-items: center;
+    padding: var(--gutter);
+    background: var(--text);
+    color: var(--bg);
+    transform: translateY(100%);
+  }
+
+  .wipe[hidden] {
+    display: none;
+  }
+
+  .wipe__label {
+    font-size: clamp(2.5rem, 10vw, 8rem);
+    font-weight: 500;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    text-align: center;
+  }
+</style>

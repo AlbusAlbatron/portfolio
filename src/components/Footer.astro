@@ -2,7 +2,7 @@
 import { site } from '../data/site';
 ---
 
-<footer class="footer">
+<footer class="footer theme-dark">
   <div class="wrap footer__inner">
     <p class="footer__line">
       Say hello — <a href={`mailto:${site.email}`}>{site.email}</a>
@@ -19,7 +19,7 @@ import { site } from '../data/site';
 <style>
   .footer {
     margin-top: clamp(5rem, 12vw, 9rem);
-    border-top: 1px solid var(--line);
+    background: var(--bg);
   }
 
   .footer__inner {
@@ -47,7 +47,7 @@ import { site } from '../data/site';
   .footer__meta {
     grid-column: 1 / -1;
     margin: 0;
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 
   @media (max-width: 40rem) {

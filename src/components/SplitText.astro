@@ -1,0 +1,56 @@
+---
+import type { HTMLTag } from 'astro/types';
+
+interface Props {
+  text: string;
+  as?: HTMLTag;
+  by?: 'char' | 'word';
+  class?: string;
+  delay?: number;
+  [key: string]: unknown;
+}
+
+const { text, as: Tag = 'h1', by = 'word', class: className, delay = 0, ...rest } = Astro.props;
+const step = by === 'char' ? 45 : 70;
+const parts = by === 'char' ? [...text] : text.split(/\s+/);
+---
+
+<Tag class:list={['split', className]} aria-label={text} {...rest}>
+  {
+    parts.map((part, i) => (
+      <>
+        <span class="split__mask" aria-hidden="true">
+          <span class="split__part" style={`--d: ${delay + i * step}ms`}>
+            {part}
+          </span>
+        </span>
+        {by === 'word' && i < parts.length - 1 && ' '}
+      </>
+    ))
+  }
+</Tag>
+
+<style>
+  .split__mask {
+    display: inline-block;
+    overflow: clip;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+    vertical-align: top;
+  }
+
+  .split__part {
+    display: inline-block;
+    animation: split-rise 1.1s var(--ease) both;
+    animation-delay: var(--d);
+  }
+
+  @keyframes split-rise {
+    from {
+      transform: translateY(110%);
+    }
+    to {
+      transform: none;
+    }
+  }
+</style>

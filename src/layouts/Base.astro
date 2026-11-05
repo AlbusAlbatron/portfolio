@@ -1,10 +1,13 @@
 ---
 import '@fontsource-variable/inter-tight';
 import '@fontsource/jetbrains-mono/400.css';
+import 'lenis/dist/lenis.css';
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import Cursor from '../components/Cursor.astro';
+import PageWipe from '../components/PageWipe.astro';
 import { site } from '../data/site';
 
 interface Props {
@@ -18,7 +21,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en-IE">
+<html lang="en-IE" data-surface="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,7 +29,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#161412" />
+    <meta name="theme-color" content="#26201b" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -43,11 +46,24 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <slot />
     </main>
     <Footer />
+    <Cursor transition:persist="cursor" />
+    <PageWipe transition:persist="wipe" />
     <script>
       import { initReveal } from '../scripts/reveal';
+      import { initSurface } from '../scripts/surface';
+      import { initSmooth } from '../scripts/smooth';
+      import { initCursor } from '../scripts/cursor';
+      import { initWipe } from '../scripts/wipe';
+
+      initSmooth();
+      initCursor();
+      initWipe();
 
       document.addEventListener('astro:after-swap', () => document.documentElement.classList.add('js'));
-      document.addEventListener('astro:page-load', initReveal);
+      document.addEventListener('astro:page-load', () => {
+        initReveal();
+        initSurface();
+      });
     </script>
   </body>
 </html>

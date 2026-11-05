@@ -37,10 +37,10 @@ const theme = 'vitesse-dark';
 
 <ProjectLayout project={project}>
   <section class="wrap" aria-label="Interactive WinGravity demo">
-    <div class="desktop" data-desktop data-reveal>
+    <div class="desktop theme-dark" data-desktop data-reveal>
       <div class="screen" data-screen>
         <article class="win" data-window data-title="readme.txt" data-x="0.04" data-y="0.06" data-mx="0.03" data-my="0.02">
-          <header class="win__bar" data-titlebar>
+          <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">readme.txt</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
           </header>
@@ -54,7 +54,7 @@ const theme = 'vitesse-dark';
         </article>
 
         <article class="win" data-window data-title="controls.txt" data-x="0.6" data-y="0.05" data-mx="0.14" data-my="0.4">
-          <header class="win__bar" data-titlebar>
+          <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">controls.txt</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
           </header>
@@ -68,7 +68,7 @@ const theme = 'vitesse-dark';
         </article>
 
         <article class="win win--code" data-window data-title="gravity.c" data-x="0.22" data-y="0.48" data-mx="0.04" data-my="0.6">
-          <header class="win__bar" data-titlebar>
+          <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">gravity.c</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
           </header>
@@ -82,7 +82,7 @@ const theme = 'vitesse-dark';
         </article>
 
         <article class="win win--log" data-window data-title="physics.log" data-x="0.66" data-y="0.52" data-mx="0.16" data-my="0.8">
-          <header class="win__bar" data-titlebar>
+          <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">physics.log</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
           </header>
@@ -286,7 +286,7 @@ const theme = 'vitesse-dark';
 
   .win__body {
     padding: 0.9rem 1rem 1rem;
-    color: #d6cfc4;
+    color: var(--text-soft);
   }
 
   .win__body p:last-child {
@@ -382,9 +382,9 @@ const theme = 'vitesse-dark';
   .compare :global(pre) {
     margin: 0;
     padding: 1rem 1.25rem;
-    border: 1px solid var(--line);
+    border: 1px solid var(--dark-line);
     border-radius: 8px;
-    background: var(--bg-sunken) !important;
+    background: var(--dark-sunken) !important;
     font-size: 0.78rem;
     line-height: 1.55;
     overflow-x: auto;

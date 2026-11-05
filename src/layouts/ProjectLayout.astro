@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import Base from './Base.astro';
+import SplitText from '../components/SplitText.astro';
 
 interface Props {
   project: CollectionEntry<'projects'>;
@@ -12,9 +13,9 @@ const { title, summary, year, tech, repo } = project.data;
 
 <Base title={title} description={summary}>
   <article>
-    <header class="wrap phead">
+    <header class="wrap phead" data-surface="dark">
       <a href="/projects" class="label phead__back" data-reveal>← All projects</a>
-      <h1 data-reveal style="--reveal-delay: 60">{title}</h1>
+      <SplitText text={title} delay={60} data-parallax="0.12" />
       <p class="phead__summary" data-reveal style="--reveal-delay: 140">{summary}</p>
       <dl class="phead__meta" data-reveal style="--reveal-delay: 220">
         <div><dt class="label">Year</dt><dd>{year}</dd></div>
@@ -25,7 +26,9 @@ const { title, summary, year, tech, repo } = project.data;
         </div>
       </dl>
     </header>
-    <slot />
+    <div data-surface="cream">
+      <slot />
+    </div>
   </article>
 </Base>
 
@@ -54,7 +57,7 @@ const { title, summary, year, tech, repo } = project.data;
     margin-top: 1.5rem;
     font-size: clamp(1.15rem, 2.4vw, 1.4rem);
     line-height: 1.4;
-    color: #d6cfc4;
+    color: var(--text-soft);
   }
 
   .phead__meta {

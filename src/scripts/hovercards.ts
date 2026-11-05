@@ -16,6 +16,7 @@ export function mountHoverCards(root: ParentNode = document): () => void {
   const cardOf = (entry: HTMLElement) => entry.querySelector<HTMLElement>('[data-hcard]')!;
 
   const place = () => {
+    raf = 0;
     if (!active) return;
     const card = cardOf(active);
     const w = card.offsetWidth;
@@ -29,7 +30,6 @@ export function mountHoverCards(root: ParentNode = document): () => void {
     current.y += (y - current.y) * k;
     card.style.transform = `translate3d(${current.x}px, ${current.y}px, 0)`;
     if (Math.abs(x - current.x) > 0.5 || Math.abs(y - current.y) > 0.5) raf = requestAnimationFrame(place);
-    else raf = 0;
   };
 
   const schedule = () => {
@@ -58,7 +58,8 @@ export function mountHoverCards(root: ParentNode = document): () => void {
       show(entry, e.clientX, e.clientY, active === null);
     };
     const onMove = (e: PointerEvent) => {
-      if (active !== entry) return;
+      // Re-show after a scroll hid the card while the pointer stayed over the entry.
+      if (active !== entry) return onEnter(e);
       target = { x: e.clientX, y: e.clientY };
       schedule();
     };

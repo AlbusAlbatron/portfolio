@@ -8,7 +8,7 @@ const projects = (await getCollection('projects')).sort((a, b) => a.data.order -
   {
     projects.map((p, i) => (
       <li data-reveal style={`--reveal-delay: ${i * 90}`}>
-        <a class="project" href={`/projects/${p.id}`}>
+        <a class="project" href={`/projects/${p.id}`} data-cursor="view">
           <span class="project__index label">{String(i + 1).padStart(2, '0')}</span>
           <span class="project__title">{p.data.title}</span>
           <span class="project__summary">{p.data.summary}</span>

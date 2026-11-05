@@ -1,0 +1,108 @@
+<div class="cursor" data-cursor-root aria-hidden="true">
+  <div class="cursor__ring" data-cursor-ring><span class="cursor__label" data-cursor-label></span></div>
+  <div class="cursor__dot" data-cursor-dot></div>
+</div>
+
+<style>
+  .cursor {
+    display: none;
+  }
+
+  :global(html.has-cursor) .cursor {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease);
+  }
+
+  .cursor.on-dark {
+    --text: var(--dark-text);
+    --bg: var(--dark-bg);
+  }
+
+  :global(html.has-cursor) .cursor.is-visible {
+    opacity: 1;
+  }
+
+  .cursor__dot,
+  .cursor__ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    will-change: transform;
+  }
+
+  .cursor__dot {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    border-radius: 50%;
+    background: var(--text);
+    transition: opacity 0.2s var(--ease);
+  }
+
+  .cursor__ring {
+    display: grid;
+    place-items: center;
+    width: 0;
+    height: 0;
+  }
+
+  .cursor__ring::before {
+    content: '';
+    position: absolute;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--text);
+    border-radius: 50%;
+    opacity: 0.5;
+    transition:
+      width 0.35s var(--ease),
+      height 0.35s var(--ease),
+      background-color 0.35s var(--ease),
+      opacity 0.35s var(--ease),
+      transform 0.2s var(--ease);
+  }
+
+  .cursor__label {
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bg);
+    opacity: 0;
+    transition: opacity 0.25s var(--ease);
+  }
+
+  .cursor[data-mode='link'] .cursor__ring::before {
+    width: 3.25rem;
+    height: 3.25rem;
+    opacity: 0.8;
+  }
+
+  .cursor[data-mode='view'] .cursor__ring::before,
+  .cursor[data-mode='drag'] .cursor__ring::before {
+    width: 4.75rem;
+    height: 4.75rem;
+    background: var(--text);
+    opacity: 1;
+  }
+
+  .cursor[data-mode='view'] .cursor__label,
+  .cursor[data-mode='drag'] .cursor__label {
+    opacity: 1;
+  }
+
+  .cursor[data-mode='view'] .cursor__dot,
+  .cursor[data-mode='drag'] .cursor__dot {
+    opacity: 0;
+  }
+
+  .cursor.is-pressed .cursor__ring::before {
+    transform: scale(0.85);
+  }
+</style>
