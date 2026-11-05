@@ -1,0 +1,58 @@
+---
+import { site } from '../data/site';
+---
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <p class="footer__line">
+      Say hello — <a href={`mailto:${site.email}`}>{site.email}</a>
+    </p>
+    <ul class="footer__links">
+      <li><a href={site.github} rel="me">GitHub</a></li>
+      <li><a href={site.linkedin} rel="me">LinkedIn</a></li>
+      <li><a href="/cv">CV</a></li>
+    </ul>
+    <p class="footer__meta label">© {new Date().getFullYear()} {site.name} · Limerick, Ireland</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: clamp(5rem, 12vw, 9rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .footer__inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem 2rem;
+    padding-block: 2.5rem 2rem;
+  }
+
+  .footer__line {
+    margin: 0;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    letter-spacing: -0.02em;
+  }
+
+  .footer__links {
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    align-self: center;
+  }
+
+  .footer__meta {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--text-faint);
+  }
+
+  @media (max-width: 40rem) {
+    .footer__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

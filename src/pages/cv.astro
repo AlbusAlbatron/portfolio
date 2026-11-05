@@ -1,0 +1,326 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import Base from '../layouts/Base.astro';
+import HoverCard from '../components/HoverCard.astro';
+import { site } from '../data/site';
+import { profile, education, skills, experience, additional, interests, type CvEntry } from '../data/cv';
+
+// The download only appears once the redacted web copy has been added at public/cv.pdf.
+const hasPdf = existsSync(join(process.cwd(), 'public', 'cv.pdf'));
+
+const sections: { id: string; title: string; entries: CvEntry[] }[] = [
+  { id: 'experience', title: 'Work experience', entries: experience },
+  { id: 'education', title: 'Education', entries: education },
+];
+---
+
+<Base title="CV" description="CV of Alby McNamara — first-year Immersive Software Engineering student at the University of Limerick.">
+  <header class="wrap cvhead">
+    <p class="label" data-reveal>Curriculum vitae</p>
+    <h1 data-reveal style="--reveal-delay: 60">{site.name}</h1>
+    <p class="cvhead__contact" data-reveal style="--reveal-delay: 120">
+      <a href={`mailto:${site.email}`}>{site.email}</a>
+      <span aria-hidden="true">·</span>
+      <a href={site.linkedin}>LinkedIn</a>
+      <span aria-hidden="true">·</span>
+      <a href={site.github}>GitHub</a>
+    </p>
+    {
+      hasPdf && (
+        <a class="button" href="/cv.pdf" download="Alby-McNamara-CV.pdf" data-reveal style="--reveal-delay: 180">
+          Download PDF ↓
+        </a>
+      )
+    }
+  </header>
+
+  <div class="wrap cv">
+    <section class="row" aria-labelledby="profile">
+      <h2 id="profile" class="label row__label" data-reveal>Profile</h2>
+      <ul class="row__body plain" data-reveal>
+        {profile.map((p) => <li>{p}</li>)}
+      </ul>
+    </section>
+
+    {
+      sections.map((s) => (
+        <section class="row" aria-labelledby={s.id}>
+          <h2 id={s.id} class="label row__label" data-reveal>
+            {s.title}
+          </h2>
+          <ol class="row__body entries">
+            {s.entries.map((e) => (
+              <li class="xp" data-hentry={e.preview ? '' : undefined} data-reveal>
+                {e.preview ? (
+                  <button type="button" class="xp__head xp__head--interactive" data-htrigger aria-expanded="false">
+                    <span class="xp__org">{e.org}</span>
+                    <span class="xp__dates label">{e.dates}</span>
+                    <span class="xp__role">{e.role}</span>
+                  </button>
+                ) : (
+                  <div class="xp__head">
+                    <span class="xp__org">{e.org}</span>
+                    <span class="xp__dates label">{e.dates}</span>
+                    <span class="xp__role">{e.role}</span>
+                  </div>
+                )}
+                {e.points.length > 0 && (
+                  <ul class="xp__points">
+                    {e.points.map((p) => (
+                      <li>{p}</li>
+                    ))}
+                  </ul>
+                )}
+                {e.preview && (
+                  <div class="xp__card">
+                    <HoverCard title={e.org} subtitle={e.role} preview={e.preview} />
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))
+    }
+
+    <section class="row" aria-labelledby="skills">
+      <h2 id="skills" class="label row__label" data-reveal>Technical skills</h2>
+      <dl class="row__body pairs" data-reveal>
+        {
+          skills.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section class="row" aria-labelledby="additional">
+      <h2 id="additional" class="label row__label" data-reveal>Awards & more</h2>
+      <dl class="row__body pairs" data-reveal>
+        {
+          additional.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section class="row" aria-labelledby="interests">
+      <h2 id="interests" class="label row__label" data-reveal>Interests</h2>
+      <p class="row__body" data-reveal>{interests}</p>
+    </section>
+
+    <section class="row" aria-labelledby="refs">
+      <h2 id="refs" class="label row__label" data-reveal>References</h2>
+      <p class="row__body muted" data-reveal>Available on request.</p>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { mountHoverCards } from '../scripts/hovercards';
+
+  let unmount: (() => void) | undefined;
+
+  document.addEventListener('astro:page-load', () => {
+    unmount?.();
+    unmount = document.querySelector('[data-hentry]') ? mountHoverCards() : undefined;
+  });
+
+  document.addEventListener('astro:before-swap', () => {
+    unmount?.();
+    unmount = undefined;
+  });
+</script>
+
+<style>
+  .cvhead {
+    display: grid;
+    justify-items: start;
+    gap: 1rem;
+    padding-block: clamp(3rem, 10vw, 7rem) clamp(2.5rem, 6vw, 4rem);
+  }
+
+  h1 {
+    font-size: clamp(2.75rem, 9vw, 6.5rem);
+    letter-spacing: -0.055em;
+  }
+
+  .cvhead__contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  .row:first-child {
+    border-top: 1px solid var(--line);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) 3fr;
+    gap: 1rem 2rem;
+    padding-block: clamp(1.75rem, 4vw, 2.75rem);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .row__label {
+    margin: 0;
+    padding-top: 0.25rem;
+    font-weight: 400;
+  }
+
+  .row__body {
+    margin: 0;
+    max-width: 44rem;
+  }
+
+  .muted {
+    color: var(--text-muted);
+  }
+
+  .plain {
+    padding: 0;
+    list-style: none;
+  }
+
+  .plain li + li {
+    margin-top: 0.6rem;
+  }
+
+  .entries {
+    display: grid;
+    gap: 1.75rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .xp__head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem 1rem;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+  }
+
+  .xp__head--interactive {
+    cursor: pointer;
+  }
+
+  .xp__org {
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+
+  .xp__head--interactive .xp__org {
+    text-decoration: underline;
+    text-decoration-color: var(--text-faint);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color 0.2s var(--ease);
+  }
+
+  .xp__head--interactive:hover .xp__org,
+  .xp.is-floating .xp__org {
+    text-decoration-color: var(--text);
+  }
+
+  .xp__dates {
+    align-self: baseline;
+    white-space: nowrap;
+  }
+
+  .xp__role {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+  }
+
+  .xp__points {
+    margin: 0.6rem 0 0;
+    padding-left: 1.1em;
+    color: #d6cfc4;
+  }
+
+  /* Touch: card expands inline under the entry when tapped. */
+  .xp__card {
+    display: none;
+    margin-top: 1rem;
+  }
+
+  .xp__head--interactive[aria-expanded='true'] ~ .xp__card {
+    display: block;
+  }
+
+  .xp__head--interactive[aria-expanded='true'] .xp__org {
+    text-decoration-color: var(--text);
+  }
+
+  /* Mouse: card floats beside the cursor. */
+  @media (hover: hover) and (pointer: fine) {
+    .xp__card {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 60;
+      margin: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.25s var(--ease),
+        visibility 0s linear 0.25s;
+    }
+
+    .xp.is-floating .xp__card {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s var(--ease);
+    }
+  }
+
+  .pairs {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .pairs div {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem;
+  }
+
+  .pairs dt {
+    color: var(--text-muted);
+  }
+
+  .pairs dd {
+    margin: 0;
+  }
+
+  @media (max-width: 40rem) {
+    .row {
+      grid-template-columns: 1fr;
+    }
+
+    .pairs div {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Base from './Base.astro';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { title, summary, year, tech, repo } = project.data;
+---
+
+<Base title={title} description={summary}>
+  <article>
+    <header class="wrap phead">
+      <a href="/projects" class="label phead__back" data-reveal>← All projects</a>
+      <h1 data-reveal style="--reveal-delay: 60">{title}</h1>
+      <p class="phead__summary" data-reveal style="--reveal-delay: 140">{summary}</p>
+      <dl class="phead__meta" data-reveal style="--reveal-delay: 220">
+        <div><dt class="label">Year</dt><dd>{year}</dd></div>
+        <div><dt class="label">Built with</dt><dd>{tech.join(', ')}</dd></div>
+        <div>
+          <dt class="label">Source</dt>
+          <dd><a href={repo}>GitHub ↗</a></dd>
+        </div>
+      </dl>
+    </header>
+    <slot />
+  </article>
+</Base>
+
+<style>
+  .phead {
+    padding-block: clamp(2.5rem, 8vw, 6rem) clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .phead__back {
+    text-decoration: none;
+  }
+
+  .phead__back:hover {
+    color: var(--text);
+  }
+
+  h1 {
+    margin-top: 0.5em;
+    font-size: clamp(3rem, 11vw, 8rem);
+    letter-spacing: -0.055em;
+    line-height: 0.9;
+  }
+
+  .phead__summary {
+    max-width: 40rem;
+    margin-top: 1.5rem;
+    font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+    line-height: 1.4;
+    color: #d6cfc4;
+  }
+
+  .phead__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 3rem;
+    margin: 2.5rem 0 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .phead__meta dd {
+    margin: 0.3rem 0 0;
+  }
+</style>

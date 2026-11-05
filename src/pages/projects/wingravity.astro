@@ -1,0 +1,398 @@
+---
+import { getEntry } from 'astro:content';
+import { Code } from 'astro:components';
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+
+const project = (await getEntry('projects', 'wingravity'))!;
+
+const cSnippet = `//Check if object is on floor
+if (objectBottom >= boundary->bottom){
+    engine->objects[i].pos.y = (float)(boundary->bottom - engine->objects[i].height);
+    if (fabs(engine->objects[i].vel.y) > BOUNCE_THRESHOLD_GROUND){
+        engine->objects[i].vel.y *= -BOUNCE;
+    }
+    else{
+        engine->objects[i].vel.y = 0.0f;
+    }
+    //Apply friction
+    if (fabs(engine->objects[i].vel.x) <= FRICTION){
+        engine->objects[i].vel.x = 0.0f;
+    }
+    else {
+        engine->objects[i].vel.x -= fsign(engine->objects[i].vel.x) * FRICTION;
+    }
+}`;
+
+const tsSnippet = `if (bottom >= bounds.bottom) {
+  o.pos.y = bounds.bottom - o.height;
+  if (Math.abs(o.vel.y) > BOUNCE_THRESHOLD_GROUND) o.vel.y *= -BOUNCE;
+  else o.vel.y = 0;
+
+  if (Math.abs(o.vel.x) <= FRICTION) o.vel.x = 0;
+  else o.vel.x -= Math.sign(o.vel.x) * FRICTION;
+}`;
+
+const theme = 'vitesse-dark';
+---
+
+<ProjectLayout project={project}>
+  <section class="wrap" aria-label="Interactive WinGravity demo">
+    <div class="desktop" data-desktop data-reveal>
+      <div class="screen" data-screen>
+        <article class="win" data-window data-title="readme.txt" data-x="0.04" data-y="0.06" data-mx="0.03" data-my="0.02">
+          <header class="win__bar" data-titlebar>
+            <span class="win__title">readme.txt</span>
+            <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </header>
+          <div class="win__body">
+            <p>
+              WinGravity finds every visible window on your Windows desktop and gives it mass. Drop them, throw
+              them, watch them bounce off the edges of your screen.
+            </p>
+            <p>These windows run the same physics, ported line-for-line from the C.</p>
+          </div>
+        </article>
+
+        <article class="win" data-window data-title="controls.txt" data-x="0.6" data-y="0.05" data-mx="0.14" data-my="0.4">
+          <header class="win__bar" data-titlebar>
+            <span class="win__title">controls.txt</span>
+            <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </header>
+          <div class="win__body">
+            <ol class="win__list">
+              <li>Turn on gravity in the taskbar.</li>
+              <li>Grab a window by its title bar.</li>
+              <li>Fling it and let go.</li>
+            </ol>
+          </div>
+        </article>
+
+        <article class="win win--code" data-window data-title="gravity.c" data-x="0.22" data-y="0.48" data-mx="0.04" data-my="0.6">
+          <header class="win__bar" data-titlebar>
+            <span class="win__title">gravity.c</span>
+            <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </header>
+          <div class="win__body">
+            <pre><code>#define GRAVITY 444.0f
+#define FRICTION 5.0f
+#define BOUNCE 0.6f
+#define BOUNCE_THRESHOLD 80.0f
+#define BOUNCE_THRESHOLD_GROUND 120.0f</code></pre>
+          </div>
+        </article>
+
+        <article class="win win--log" data-window data-title="physics.log" data-x="0.66" data-y="0.52" data-mx="0.16" data-my="0.8">
+          <header class="win__bar" data-titlebar>
+            <span class="win__title">physics.log</span>
+            <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </header>
+          <div class="win__body">
+            <pre data-readout aria-live="off">waiting for input…</pre>
+          </div>
+        </article>
+      </div>
+
+      <div class="taskbar">
+        <span class="taskbar__start label">WinGravity</span>
+        <div class="taskbar__actions">
+          <button type="button" class="taskbar__btn taskbar__btn--primary" data-gravity-toggle aria-pressed="false">
+            Turn on gravity
+          </button>
+          <button type="button" class="taskbar__btn" data-reset>Reset</button>
+        </div>
+        <span class="taskbar__clock label" data-clock></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="prose case" data-reveal>
+      <h2>The idea</h2>
+      <p>
+        I wanted to know whether I could make Windows itself feel physical — not a game in a window, but the actual
+        windows on my desktop falling to the bottom of the screen and bouncing when they landed. It turned out the
+        Win32 API gives you everything you need: a list of every window, events when the user drags one, and a way
+        to move any window you like.
+      </p>
+
+      <h2>How it works</h2>
+      <h3>Finding the windows</h3>
+      <p>
+        On start-up, <code>EnumWindows</code> walks every top-level window. Anything that's visible and has a title
+        becomes an <code>EngineObject</code> with a position, velocity and size, stored in an array that grows with
+        <code>realloc</code>.
+      </p>
+      <h3>Listening for the user</h3>
+      <p>
+        <code>SetWinEventHook</code> registers for <code>EVENT_SYSTEM_MOVESIZESTART</code>,
+        <code>EVENT_SYSTEM_MOVESIZEEND</code> and <code>EVENT_OBJECT_LOCATIONCHANGE</code>. When you grab a window,
+        it's marked as grabbed and the physics stops fighting you. While you drag, its position is sampled every
+        20 frames; when you let go, the distance travelled over that time becomes the throw velocity.
+      </p>
+      <h3>The physics loop</h3>
+      <p>
+        Every frame, the engine measures elapsed time with <code>QueryPerformanceCounter</code>, adds gravity to
+        each window's vertical velocity, and checks it against the edges of the virtual screen (all monitors
+        combined). Hitting the floor bounces the window back up with 60% of its speed — unless it's moving too
+        slowly, in which case it settles and friction takes over. Finally, <code>SetWindowPos</code> moves every
+        real window to its new position.
+      </p>
+
+      <h2>Bringing it to the browser</h2>
+      <p>
+        The demo above is a TypeScript port of <code>UpdateEnginePhysics</code>. The Win32 parts are replaced —
+        pointer events stand in for the window hooks, CSS transforms stand in for <code>SetWindowPos</code> — but
+        the constants, the collision rules and the throw calculation are the same. Here's the floor collision in
+        both:
+      </p>
+    </div>
+
+    <div class="compare" data-reveal>
+      <figure>
+        <figcaption class="label">gravity.c</figcaption>
+        <Code code={cSnippet} lang="c" theme={theme} />
+      </figure>
+      <figure>
+        <figcaption class="label">engine.ts</figcaption>
+        <Code code={tsSnippet} lang="ts" theme={theme} />
+      </figure>
+    </div>
+
+    <div class="prose case" data-reveal>
+      <h2>What I learned</h2>
+      <ul>
+        <li>
+          <strong>Callbacks and the Windows message loop.</strong> Nothing happens unless you keep pumping messages
+          with <code>PeekMessage</code>, so the physics and the event handling have to share one loop.
+        </li>
+        <li>
+          <strong>Fixed timesteps.</strong> Running physics in fixed steps with an accumulator keeps the simulation
+          stable no matter how fast or slow the frames come in.
+        </li>
+        <li>
+          <strong>Manual memory.</strong> Growing the window list with <code>realloc</code>, and checking it didn't
+          fail before using it.
+        </li>
+      </ul>
+    </div>
+  </div>
+</ProjectLayout>
+
+<script>
+  import { mountDesktop } from '../../scripts/gravity/desktop';
+
+  let unmount: (() => void) | undefined;
+
+  document.addEventListener('astro:page-load', () => {
+    const root = document.querySelector<HTMLElement>('[data-desktop]');
+    if (root) unmount = mountDesktop(root);
+  });
+
+  document.addEventListener('astro:before-swap', () => {
+    unmount?.();
+    unmount = undefined;
+  });
+</script>
+
+<style>
+  .desktop {
+    --bar-h: 3rem;
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--text) 9%, transparent) 1px, transparent 0) 0 0 /
+        22px 22px,
+      var(--bg-sunken);
+  }
+
+  .screen {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .desktop.is-live .screen {
+    display: block;
+    padding: 0;
+    height: clamp(30rem, 72svh, 44rem);
+    touch-action: pan-y;
+  }
+
+  .win {
+    width: min(20rem, 82%);
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.7);
+    font-size: 0.9rem;
+  }
+
+  .desktop:not(.is-live) .win {
+    width: auto;
+  }
+
+  .is-live .win {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+  }
+
+  .win--code {
+    width: min(22rem, 86%);
+  }
+
+  .win.is-grabbed {
+    box-shadow: 0 28px 60px -20px rgb(0 0 0 / 0.85);
+  }
+
+  .win__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    user-select: none;
+  }
+
+  .is-live .win__bar {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .is-live .win.is-grabbed .win__bar {
+    cursor: grabbing;
+  }
+
+  .win__dots {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .win__dots i {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    border: 1px solid var(--text-faint);
+  }
+
+  .win__body {
+    padding: 0.9rem 1rem 1rem;
+    color: #d6cfc4;
+  }
+
+  .win__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .win__list {
+    margin: 0;
+    padding-left: 1.2em;
+  }
+
+  .win__body pre {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--text-muted);
+  }
+
+  .win--log pre {
+    color: var(--text);
+  }
+
+  .taskbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: var(--bar-h);
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg-raised) 85%, transparent);
+  }
+
+  .taskbar__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .taskbar__btn {
+    padding: 0.4em 0.9em;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition:
+      background-color 0.2s var(--ease),
+      border-color 0.2s var(--ease),
+      color 0.2s var(--ease);
+  }
+
+  .taskbar__btn:hover {
+    border-color: var(--text);
+  }
+
+  .taskbar__btn--primary {
+    border-color: var(--text);
+  }
+
+  .taskbar__btn[aria-pressed='true'] {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  .desktop:not(.is-live) .taskbar__actions {
+    visibility: hidden;
+  }
+
+  .case {
+    margin-top: clamp(2rem, 6vw, 4rem);
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .compare figure {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .compare figcaption {
+    margin-bottom: 0.5rem;
+  }
+
+  .compare :global(pre) {
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-sunken) !important;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    overflow-x: auto;
+  }
+
+  @media (max-width: 30rem) {
+    .taskbar__clock {
+      display: none;
+    }
+  }
+</style>

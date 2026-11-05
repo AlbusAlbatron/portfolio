@@ -1,0 +1,126 @@
+---
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<ol class="projects">
+  {
+    projects.map((p, i) => (
+      <li data-reveal style={`--reveal-delay: ${i * 90}`}>
+        <a class="project" href={`/projects/${p.id}`}>
+          <span class="project__index label">{String(i + 1).padStart(2, '0')}</span>
+          <span class="project__title">{p.data.title}</span>
+          <span class="project__summary">{p.data.summary}</span>
+          <span class="project__meta label">
+            {p.data.tech.join(' · ')}
+            {p.data.interactive && <span class="project__badge">Playable</span>}
+          </span>
+          <span class="project__arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .projects {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .projects li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .project {
+    display: grid;
+    grid-template-columns: 3rem 1fr auto;
+    grid-template-areas:
+      'index title arrow'
+      '. summary arrow'
+      '. meta arrow';
+    column-gap: 1rem;
+    row-gap: 0.4rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem) 0;
+    text-decoration: none;
+  }
+
+  .project__index {
+    grid-area: index;
+    padding-top: 0.6em;
+  }
+
+  .project__title {
+    grid-area: title;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    transition: transform 0.5s var(--ease);
+  }
+
+  .project__summary {
+    grid-area: summary;
+    max-width: 36rem;
+    color: var(--text-muted);
+    transition: color 0.3s var(--ease);
+  }
+
+  .project__meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .project__badge {
+    padding: 0.15em 0.6em;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--text);
+  }
+
+  .project__arrow {
+    grid-area: arrow;
+    align-self: center;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    color: var(--text-faint);
+    transition:
+      transform 0.5s var(--ease),
+      color 0.3s var(--ease);
+  }
+
+  .project:hover .project__title {
+    transform: translateX(0.5rem);
+  }
+
+  .project:hover .project__summary {
+    color: var(--text);
+  }
+
+  .project:hover .project__arrow {
+    color: var(--text);
+    transform: translateX(0.5rem);
+  }
+
+  @media (max-width: 40rem) {
+    .project {
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        'index arrow'
+        'title arrow'
+        'summary summary'
+        'meta meta';
+    }
+
+    .project__index {
+      padding-top: 0;
+    }
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProjectList from '../../components/ProjectList.astro';
+---
+
+<Base title="Projects" description="Projects by Alby McNamara — systems programming in C and the Win32 API.">
+  <section class="wrap head">
+    <p class="label" data-reveal>Projects</p>
+    <h1 data-reveal style="--reveal-delay: 80">Things I've built</h1>
+    <p class="head__intro" data-reveal style="--reveal-delay: 160">
+      Small tools that poke at how Windows works underneath. Each one started as "I wonder if I could…".
+    </p>
+  </section>
+  <section class="wrap">
+    <ProjectList />
+  </section>
+</Base>
+
+<style>
+  .head {
+    padding-block: clamp(3rem, 10vw, 7rem) clamp(2rem, 6vw, 4rem);
+  }
+
+  h1 {
+    margin-top: 0.4em;
+    font-size: clamp(2.75rem, 9vw, 6rem);
+    letter-spacing: -0.05em;
+  }
+
+  .head__intro {
+    max-width: 34rem;
+    margin-top: 1.25rem;
+    font-size: 1.15rem;
+    color: var(--text-muted);
+  }
+</style>

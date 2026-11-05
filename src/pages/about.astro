@@ -1,0 +1,154 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+
+// Drop a photo (jpg/png/webp) into src/assets/about/ and it appears automatically.
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/about/*.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+});
+const photo = Object.values(photos)[0]?.default;
+
+const facts = [
+  { label: 'Studying', value: 'Immersive Software Engineering, University of Limerick' },
+  { label: 'Writing', value: 'C, Java, Python — and the Win32 API' },
+  { label: 'Playing', value: 'American football for UL' },
+  { label: 'Watching', value: 'Films, as many as I can fit in' },
+];
+---
+
+<Base title="About" description="About Alby McNamara — ISE student at UL, C programmer, American football player and film fan.">
+  <section class="wrap intro">
+    <p class="label" data-reveal>About</p>
+    <h1 data-reveal style="--reveal-delay: 80">
+      Hi, I'm Alby. I like making computers do things they weren't really meant to.
+    </h1>
+  </section>
+
+  <section class="wrap grid">
+    <div class="prose story">
+      <h2 data-reveal>How I got into this</h2>
+      <p data-reveal>
+        What hooked me on programming wasn't building the usual apps — it was finding odd, unexpected things a
+        computer would let me do. The more I poked around, the lower down I wanted to go, until I ended up writing
+        C straight against the Win32 API.
+      </p>
+      <p data-reveal>
+        That's where both of my projects come from. <a href="/projects/wingravity">WinGravity</a> started with
+        wondering whether I could make the windows on my desktop fall.
+        <a href="/projects/attention-service">Attention Service</a> started with me admitting I procrastinate, and
+        wanting a blocker I couldn't just close.
+      </p>
+      <p data-reveal>
+        Now I'm in first year of Immersive Software Engineering at UL, learning how to take that curiosity and
+        turn it into software other people can rely on.
+      </p>
+
+      <h2 data-reveal>Off the keyboard</h2>
+      <p data-reveal>
+        I play American football with the University of Limerick team — a completely different kind of problem
+        solving, and a good reason to get away from a screen. Before UL I played football and basketball for my
+        school and helped coach underage teams at Clonmel Commercials.
+      </p>
+      <p data-reveal>
+        The rest of the time, I'm probably watching a film.
+      </p>
+    </div>
+
+    <aside class="side">
+      {
+        photo && (
+          <figure class="photo" data-reveal>
+            <Image src={photo} alt="Alby McNamara" widths={[320, 640, 960]} sizes="(max-width: 48rem) 100vw, 22rem" />
+          </figure>
+        )
+      }
+      <dl class="facts">
+        {
+          facts.map((f, i) => (
+            <div class="fact" data-reveal style={`--reveal-delay: ${i * 70}`}>
+              <dt class="label">{f.label}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <a class="button" href="/cv" data-reveal>See my CV →</a>
+    </aside>
+  </section>
+</Base>
+
+<style>
+  .intro {
+    padding-block: clamp(3rem, 10vw, 7rem) clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  h1 {
+    max-width: 20ch;
+    margin-top: 0.5em;
+    font-size: clamp(2.25rem, 6.5vw, 4.75rem);
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .story h2:first-child {
+    margin-top: 0;
+  }
+
+  .side {
+    position: sticky;
+    top: 6rem;
+    display: grid;
+    gap: 1.75rem;
+    justify-items: start;
+  }
+
+  .photo {
+    margin: 0;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+  }
+
+  .photo :global(img) {
+    width: 100%;
+    filter: grayscale(0.35) sepia(0.12);
+    transition: filter 0.6s var(--ease);
+  }
+
+  .photo:hover :global(img) {
+    filter: none;
+  }
+
+  .facts {
+    width: 100%;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .fact {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .fact dd {
+    margin: 0.3rem 0 0;
+  }
+
+  @media (max-width: 48rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .side {
+      position: static;
+    }
+  }
+</style>

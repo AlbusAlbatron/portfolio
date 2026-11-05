@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import ProjectList from '../components/ProjectList.astro';
+---
+
+<Base>
+  <section class="hero wrap">
+    <p class="label" data-reveal>Software engineering student — University of Limerick</p>
+    <h1 class="hero__name" data-reveal style="--reveal-delay: 80">Alby</h1>
+    <p class="hero__intro" data-reveal style="--reveal-delay: 180">
+      I'm a first-year Immersive Software Engineering student. I like finding strange things to make a computer
+      do — mostly in C, mostly by talking straight to Windows.
+    </p>
+    <div class="hero__actions" data-reveal style="--reveal-delay: 260">
+      <a class="button" href="/projects/wingravity">Play with WinGravity</a>
+      <a class="button button--ghost" href="/about">About me</a>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="work">
+    <h2 id="work" class="label section__label" data-reveal>Selected work</h2>
+    <ProjectList />
+  </section>
+
+  <section class="wrap section teaser" aria-labelledby="more">
+    <h2 id="more" class="label section__label" data-reveal>Off the keyboard</h2>
+    <p class="teaser__text" data-reveal>
+      When I'm not writing C, I'm playing American football for UL or watching films.
+    </p>
+    <div class="hero__actions" data-reveal>
+      <a class="button button--ghost" href="/about">More about me</a>
+      <a class="button button--ghost" href="/cv">Read my CV</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(4rem, 14vw, 10rem) clamp(3rem, 8vw, 6rem);
+  }
+
+  .hero__name {
+    margin: 0.2em 0 0.15em;
+    font-size: clamp(5rem, 22vw, 16rem);
+    font-weight: 500;
+    letter-spacing: -0.065em;
+    line-height: 0.85;
+    margin-left: -0.05em;
+  }
+
+  .hero__intro {
+    max-width: 36rem;
+    font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    color: #d6cfc4;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .section {
+    padding-top: clamp(3rem, 8vw, 6rem);
+  }
+
+  .section__label {
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+
+  .teaser__text {
+    max-width: 44rem;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+</style>
