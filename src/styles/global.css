@@ -26,6 +26,17 @@
   --light-muted: #6b6159;
   --light-faint: #a39a8f;
 
+  --astro-code-foreground: #e4ddd3;
+  --astro-code-token-comment: #a39a8f;
+  --astro-code-token-constant: #e9b98c;
+  --astro-code-token-function: #efd59b;
+  --astro-code-token-keyword: #e5a39a;
+  --astro-code-token-parameter: #e4ddd3;
+  --astro-code-token-punctuation: #b1a89c;
+  --astro-code-token-string: #c6cf96;
+  --astro-code-token-string-expression: #c6cf96;
+  --astro-code-token-link: #e9b98c;
+
   --font-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
@@ -159,6 +170,15 @@ pre {
   max-width: var(--max);
   margin-inline: auto;
   padding-inline: var(--gutter);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .label {

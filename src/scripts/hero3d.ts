@@ -1,4 +1,28 @@
-// Floating stack of 3D "windows" behind the home hero. Three.js is imported on demand so no other page pays for it.
+// Floating stack of 3D "windows" behind the home hero. This module is dynamically imported by the home page,
+// so three.js stays out of every other page; named imports let the bundler drop the parts we don't use.
+import {
+  Box3,
+  CanvasTexture,
+  CircleGeometry,
+  Clock,
+  DirectionalLight,
+  Group,
+  HemisphereLight,
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  NeutralToneMapping,
+  PerspectiveCamera,
+  PlaneGeometry,
+  Raycaster,
+  SRGBColorSpace,
+  Scene,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+} from 'three';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 // Staggered 2x2 so no window hides another's text.
 const WINDOWS = [
@@ -53,50 +77,46 @@ function drawFact(canvas: HTMLCanvasElement, fact: Fact) {
 }
 
 export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): Promise<() => void> {
-  const [THREE, { RoundedBoxGeometry }, { RoomEnvironment }] = await Promise.all([
-    import('three'),
-    import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
-    import('three/examples/jsm/environments/RoomEnvironment.js'),
-  ]);
-
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
+  const renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMapping = NeutralToneMapping;
   const canvas = renderer.domElement;
   canvas.className = 'hero-scene__canvas';
   if (fine) canvas.dataset.cursor = 'drag';
   container.appendChild(canvas);
 
-  const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const env = pmrem.fromScene(new RoomEnvironment(), 0.04);
-  scene.environment = env.texture;
-  scene.environmentIntensity = 0.15;
+  const yieldToBrowser = () => new Promise((r) => setTimeout(r, 0));
 
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+  const scene = new Scene();
+  // A sky/ground fill instead of a generated environment map: nearly the same look on these matte slabs,
+  // without the expensive cube-map render that froze the page on first interaction.
+  scene.add(new HemisphereLight(0xfff4e6, 0x2a221c, 1.1));
+  await yieldToBrowser();
+
+  const camera = new PerspectiveCamera(30, 1, 0.1, 100);
   camera.position.set(0, 0, 10);
 
-  const key = new THREE.DirectionalLight(0xfff1e0, 1.6);
+  const key = new DirectionalLight(0xfff1e0, 1.6);
   key.position.set(-4, 5, 6);
   scene.add(key);
 
-  const disposables: { dispose(): void }[] = [env, pmrem];
+  const disposables: { dispose(): void }[] = [];
   const track = <T extends { dispose(): void }>(x: T) => (disposables.push(x), x);
 
   const bodyGeo = track(new RoundedBoxGeometry(2.6, 1.8, 0.1, 4, 0.08));
   const barGeo = track(new RoundedBoxGeometry(2.6, 0.3, 0.12, 4, 0.06));
-  const dotGeo = track(new THREE.CircleGeometry(0.045, 20));
-  const lineGeo = track(new THREE.PlaneGeometry(1, 0.06));
+  const dotGeo = track(new CircleGeometry(0.045, 20));
+  const lineGeo = track(new PlaneGeometry(1, 0.06));
   const bodyMat = track(
-    new THREE.MeshPhysicalMaterial({ color: 0x2b241f, roughness: 0.6, metalness: 0.05, clearcoat: 0.3, clearcoatRoughness: 0.5 }),
+    new MeshStandardMaterial({ color: 0x2b241f, roughness: 0.6, metalness: 0.05 }),
   );
-  const barMat = track(new THREE.MeshStandardMaterial({ color: 0xeee8de, roughness: 0.55 }));
-  const dotMat = track(new THREE.MeshBasicMaterial({ color: 0x5e554c }));
-  const lineMat = track(new THREE.MeshBasicMaterial({ color: 0x8c8276, transparent: true, opacity: 0.55 }));
-  const textGeo = track(new THREE.PlaneGeometry(2.4, 1.4));
+  const barMat = track(new MeshStandardMaterial({ color: 0xeee8de, roughness: 0.55 }));
+  const dotMat = track(new MeshBasicMaterial({ color: 0x5e554c }));
+  const lineMat = track(new MeshBasicMaterial({ color: 0x8c8276, transparent: true, opacity: 0.55 }));
+  const textGeo = track(new PlaneGeometry(2.4, 1.4));
 
   if (facts.length) {
     await Promise.all([
@@ -109,37 +129,37 @@ export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): P
     c.width = TEX_W;
     c.height = TEX_H;
     drawFact(c, fact);
-    const tex = track(new THREE.CanvasTexture(c));
-    tex.colorSpace = THREE.SRGBColorSpace;
+    const tex = track(new CanvasTexture(c));
+    tex.colorSpace = SRGBColorSpace;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     return { fact, canvas: c, tex };
   });
 
   const GROUP_Y = 0;
-  const group = new THREE.Group();
+  const group = new Group();
   scene.add(group);
 
   const windows = WINDOWS.map((spec, i) => {
-    const win = new THREE.Group();
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    const win = new Group();
+    const body = new Mesh(bodyGeo, bodyMat);
     win.add(body);
-    const bar = new THREE.Mesh(barGeo, barMat);
+    const bar = new Mesh(barGeo, barMat);
     bar.position.set(0, 0.75, 0.005);
     win.add(bar);
     for (let d = 0; d < 3; d++) {
-      const dot = new THREE.Mesh(dotGeo, dotMat);
+      const dot = new Mesh(dotGeo, dotMat);
       dot.position.set(1.05 - d * 0.14, 0.75, 0.067);
       win.add(dot);
     }
     const text = factTextures[i];
     if (text) {
-      const mat = track(new THREE.MeshBasicMaterial({ map: text.tex, transparent: true, toneMapped: false }));
-      const plane = new THREE.Mesh(textGeo, mat);
+      const mat = track(new MeshBasicMaterial({ map: text.tex, transparent: true, toneMapped: false }));
+      const plane = new Mesh(textGeo, mat);
       plane.position.set(0, -0.15, 0.056);
       win.add(plane);
     } else {
       spec.lines.forEach((w, l) => {
-        const line = new THREE.Mesh(lineGeo, lineMat);
+        const line = new Mesh(lineGeo, lineMat);
         line.scale.x = w * 2.1;
         line.position.set(-1.15 + (w * 2.1) / 2, 0.35 - l * 0.24, 0.056);
         win.add(line);
@@ -149,13 +169,13 @@ export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): P
     win.rotation.set(spec.rot[0], spec.rot[1], spec.rot[2]);
     win.scale.setScalar(SCALE);
     group.add(win);
-    return { win, body, base: new THREE.Vector3(spec.pos[0], spec.pos[1], spec.pos[2]), phase: i * 1.7, lift: 0 };
+    return { win, body, base: new Vector3(spec.pos[0], spec.pos[1], spec.pos[2]), phase: i * 1.7, lift: 0 };
   });
 
   // Interaction state
   const pointer = { x: 0, y: 0 };
-  const ndc = new THREE.Vector2(9, 9);
-  const ray = new THREE.Raycaster();
+  const ndc = new Vector2(9, 9);
+  const ray = new Raycaster();
   let spin = 0;
   let spinVel = 0;
   let dragging = false;
@@ -194,9 +214,9 @@ export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): P
   }
 
   // Pull the camera back until the whole cluster (plus room for tilting) fits the canvas at any size.
-  const bounds = new THREE.Box3().setFromObject(group);
-  const size = bounds.getSize(new THREE.Vector3());
-  const halfTan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const bounds = new Box3().setFromObject(group);
+  const size = bounds.getSize(new Vector3());
+  const halfTan = Math.tan(MathUtils.degToRad(camera.fov / 2));
 
   const resize = () => {
     const w = container.clientWidth;
@@ -216,7 +236,7 @@ export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): P
 
   let raf = 0;
   let visible = true;
-  const clock = new THREE.Clock();
+  const clock = new Clock();
 
   const tick = () => {
     raf = requestAnimationFrame(tick);
@@ -279,6 +299,10 @@ export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): P
       }, 30_000)
     : 0;
 
+  // Compile shaders off the main thread where the browser supports it, so the first frame doesn't block.
+  if (renderer.extensions.has('KHR_parallel_shader_compile')) await renderer.compileAsync(scene, camera);
+  else renderer.compile(scene, camera);
+  await yieldToBrowser();
   renderer.render(scene, camera);
   container.classList.add('is-ready');
   if (factTextures.length) container.classList.add('has-text');

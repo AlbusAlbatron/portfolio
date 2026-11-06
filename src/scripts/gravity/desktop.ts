@@ -163,6 +163,13 @@ export function mountDesktop(root: HTMLElement): () => void {
   setup();
   setGravity(false);
 
+  // data-autostart="600": switch gravity on by itself after that many ms (skipped for reduced motion).
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const autostart =
+    root.dataset.autostart !== undefined && !reduce
+      ? window.setTimeout(() => setGravity(true), Number(root.dataset.autostart) || 600)
+      : 0;
+
   const io = new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting;
     visible ? start() : stop();
@@ -184,6 +191,7 @@ export function mountDesktop(root: HTMLElement): () => void {
   document.addEventListener('visibilitychange', onVisibility);
 
   return () => {
+    clearTimeout(autostart);
     stop();
     io.disconnect();
     ro.disconnect();

@@ -1,0 +1,61 @@
+<nav class="sindex" data-sindex aria-label="On this page" transition:persist="sindex" hidden>
+  <ol class="sindex__list" data-sindex-list></ol>
+</nav>
+
+<style>
+  .sindex {
+    display: none;
+  }
+
+  @media (min-width: 87.5rem) {
+    .sindex:not([hidden]) {
+      display: block;
+      position: fixed;
+      left: 1.5rem;
+      top: 50%;
+      z-index: 40;
+      transform: translateY(-50%);
+    }
+  }
+
+  .sindex__list {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sindex__list :global(button) {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    padding: 0.15rem 0;
+    border: 0;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.3s var(--ease);
+  }
+
+  .sindex__list :global(button:hover),
+  .sindex__list :global(button[aria-current='true']) {
+    color: var(--text);
+  }
+
+  .sindex__list :global(.sindex__num) {
+    min-width: 1.4rem;
+  }
+
+  .sindex__list :global(.sindex__label) {
+    max-width: 7.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

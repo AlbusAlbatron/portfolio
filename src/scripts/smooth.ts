@@ -21,6 +21,15 @@ function updateParallax() {
   }
 }
 
+export function scrollToEl(el: HTMLElement) {
+  const offset = -96;
+  if (lenis) lenis.scrollTo(el, { offset });
+  else {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY + offset, behavior: reduce ? 'auto' : 'smooth' });
+  }
+}
+
 export function initSmooth() {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;

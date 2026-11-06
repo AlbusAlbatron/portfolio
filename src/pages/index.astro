@@ -2,6 +2,9 @@
 import Base from '../layouts/Base.astro';
 import ProjectList from '../components/ProjectList.astro';
 import SplitText from '../components/SplitText.astro';
+import Marquee from '../components/Marquee.astro';
+
+const skills = ['C', 'Win32 API', 'Windows Services', 'Java', 'Python', 'HTML/CSS', 'Git', 'Linux', 'Algorithms', 'OOP'];
 
 const info = [
   { label: 'Based in', value: 'Limerick, Ireland', clock: true },
@@ -12,7 +15,7 @@ const info = [
 ---
 
 <Base>
-  <section class="hero wrap" data-surface="dark">
+  <section class="hero wrap" data-surface="dark" data-index="Intro">
     <div class="hero__scene" data-hero-scene data-facts={JSON.stringify(info)} aria-hidden="true"></div>
     <p class="label" data-reveal>Software engineering student — University of Limerick</p>
     <SplitText text="Alby" by="char" class="hero__name" delay={120} data-parallax="0.18" />
@@ -46,12 +49,14 @@ const info = [
     </dl>
   </section>
 
-  <section class="wrap section" aria-labelledby="work" data-surface="light">
+  <Marquee items={skills} label="Skills" />
+
+  <section class="wrap section" aria-labelledby="work" data-surface="light" data-index="Work">
     <h2 id="work" class="label section__label" data-reveal>Selected work</h2>
     <ProjectList />
   </section>
 
-  <section class="wrap section teaser" aria-labelledby="more" data-surface="light">
+  <section class="wrap section teaser" aria-labelledby="more" data-surface="light" data-index="Off the keyboard">
     <h2 id="more" class="label section__label" data-reveal>Off the keyboard</h2>
     <p class="teaser__text" data-reveal data-liquid>
       When I'm not writing C, I'm playing American football for UL or watching films.
@@ -97,28 +102,56 @@ const info = [
     }
   };
 
+  // Data-saver connections and low-end devices get the plain HTML card instead of the 3D scene.
+  const wants3D = () => {
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
+    if (nav.connection?.saveData) return false;
+    if (nav.deviceMemory !== undefined && nav.deviceMemory <= 2) return false;
+    if (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) return false;
+    return true;
+  };
+
+  const TRIGGERS = ['pointermove', 'wheel', 'scroll', 'keydown', 'touchstart'] as const;
+  let trigger: (() => void) | undefined;
+
   document.addEventListener('astro:page-load', () => {
     const container = document.querySelector<HTMLElement>('[data-hero-scene]');
-    if (!container || !supportsWebGL()) return;
-    // Wait for the page wipe and headline to finish, then build the scene in idle time.
+    // Phones keep the HTML card: the scene would be tiny there and isn't worth the download.
+    const wide = window.matchMedia('(min-width: 48.01rem)').matches;
+    if (!container || !wide || !wants3D() || !supportsWebGL()) return;
+    const loadedAt = performance.now();
+
     const mount = async () => {
       if (!container.isConnected) return;
       const { mountHero3D } = await import('../scripts/hero3d');
-      // Facts go on the 3D windows only where they're big enough to read; phones keep the HTML card.
-      const wide = window.matchMedia('(min-width: 48.01rem)').matches;
-      const facts = wide ? JSON.parse(container.dataset.facts ?? '[]') : [];
+      const facts = JSON.parse(container.dataset.facts ?? '[]');
       const cleanup = await mountHero3D(container, facts);
       if (container.isConnected) dispose = cleanup;
       else cleanup();
     };
+
+    // Build the scene on the first sign of a visitor (mouse, scroll, keys), not during page load, and never
+    // before the page wipe and headline have finished. Visitors who don't touch anything get it when idle.
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      TRIGGERS.forEach((t) => window.removeEventListener(t, start));
+      clearTimeout(scheduled);
+      scheduled = window.setTimeout(mount, Math.max(0, 900 - (performance.now() - loadedAt)));
+    };
+    trigger = start;
+    TRIGGERS.forEach((t) => window.addEventListener(t, start, { passive: true }));
     scheduled = window.setTimeout(() => {
-      if ('requestIdleCallback' in window) requestIdleCallback(mount, { timeout: 1000 });
-      else mount();
-    }, 900);
+      if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 2000 });
+      else start();
+    }, 5000);
   });
 
   document.addEventListener('astro:before-swap', () => {
     clearTimeout(scheduled);
+    if (trigger) TRIGGERS.forEach((t) => window.removeEventListener(t, trigger!));
+    trigger = undefined;
     dispose?.();
     dispose = undefined;
   });

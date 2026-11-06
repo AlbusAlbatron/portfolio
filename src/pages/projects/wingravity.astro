@@ -2,6 +2,7 @@
 import { getEntry } from 'astro:content';
 import { Code } from 'astro:components';
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import '../../styles/desktop.css';
 
 const project = (await getEntry('projects', 'wingravity'))!;
 
@@ -32,7 +33,7 @@ const tsSnippet = `if (bottom >= bounds.bottom) {
   else o.vel.x -= Math.sign(o.vel.x) * FRICTION;
 }`;
 
-const theme = 'vitesse-dark';
+const theme = 'css-variables';
 ---
 
 <ProjectLayout project={project}>
@@ -195,170 +196,6 @@ const theme = 'vitesse-dark';
 </script>
 
 <style>
-  .desktop {
-    --bar-h: 3rem;
-    position: relative;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--text) 9%, transparent) 1px, transparent 0) 0 0 /
-        22px 22px,
-      var(--bg-sunken);
-  }
-
-  .screen {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .desktop.is-live .screen {
-    display: block;
-    padding: 0;
-    height: clamp(30rem, 72svh, 44rem);
-    touch-action: pan-y;
-  }
-
-  .win {
-    width: min(20rem, 82%);
-    background: var(--bg-raised);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.7);
-    font-size: 0.9rem;
-  }
-
-  .desktop:not(.is-live) .win {
-    width: auto;
-  }
-
-  .is-live .win {
-    position: absolute;
-    top: 0;
-    left: 0;
-    will-change: translate, rotate;
-  }
-
-  .win--code {
-    width: min(22rem, 86%);
-  }
-
-  .win.is-grabbed {
-    box-shadow: 0 28px 60px -20px rgb(0 0 0 / 0.85);
-  }
-
-  .win__bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.55rem 0.8rem;
-    border-bottom: 1px solid var(--line);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    user-select: none;
-  }
-
-  .is-live .win__bar {
-    cursor: grab;
-    touch-action: none;
-  }
-
-  .is-live .win.is-grabbed .win__bar {
-    cursor: grabbing;
-  }
-
-  .win__dots {
-    display: flex;
-    gap: 0.35rem;
-  }
-
-  .win__dots i {
-    width: 0.55rem;
-    height: 0.55rem;
-    border-radius: 50%;
-    border: 1px solid var(--text-faint);
-  }
-
-  .win__body {
-    padding: 0.9rem 1rem 1rem;
-    color: var(--text-soft);
-  }
-
-  .win__body p:last-child {
-    margin-bottom: 0;
-  }
-
-  .win__list {
-    margin: 0;
-    padding-left: 1.2em;
-  }
-
-  .win__body pre {
-    margin: 0;
-    font-size: 0.75rem;
-    line-height: 1.6;
-    white-space: pre;
-    overflow-x: auto;
-    color: var(--text-muted);
-  }
-
-  .win--log pre {
-    color: var(--text);
-  }
-
-  .taskbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    min-height: var(--bar-h);
-    padding: 0.5rem 0.75rem;
-    border-top: 1px solid var(--line);
-    background: color-mix(in srgb, var(--bg-raised) 85%, transparent);
-  }
-
-  .taskbar__actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .taskbar__btn {
-    padding: 0.4em 0.9em;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition:
-      background-color 0.2s var(--ease),
-      border-color 0.2s var(--ease),
-      color 0.2s var(--ease);
-  }
-
-  .taskbar__btn:hover {
-    border-color: var(--text);
-  }
-
-  .taskbar__btn--primary {
-    border-color: var(--text);
-  }
-
-  .taskbar__btn[aria-pressed='true'] {
-    background: var(--text);
-    color: var(--bg);
-  }
-
-  .desktop:not(.is-live) .taskbar__actions {
-    visibility: hidden;
-  }
-
   .case {
     margin-top: clamp(2rem, 6vw, 4rem);
   }
@@ -388,11 +225,5 @@ const theme = 'vitesse-dark';
     font-size: 0.78rem;
     line-height: 1.55;
     overflow-x: auto;
-  }
-
-  @media (max-width: 30rem) {
-    .taskbar__clock {
-      display: none;
-    }
   }
 </style>

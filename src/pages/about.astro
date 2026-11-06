@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import SplitText from '../components/SplitText.astro';
+import PlayDiagram from '../components/PlayDiagram.astro';
 
 // Drop a photo (jpg/png/webp) into src/assets/about/ and it appears automatically.
 const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/about/*.{jpg,jpeg,png,webp,avif}', {
@@ -18,7 +19,7 @@ const facts = [
 ---
 
 <Base title="About" description="About Alby McNamara — ISE student at UL, C programmer, American football player and film fan.">
-  <section class="wrap intro" data-surface="dark">
+  <section class="wrap intro" data-surface="dark" data-index="Intro">
     <p class="label" data-reveal>About</p>
     <SplitText
       text="Hi, I'm Alby. I like making computers do things they weren't really meant to."
@@ -52,6 +53,7 @@ const facts = [
         solving, and a good reason to get away from a screen. Before UL I played football and basketball for my
         school and helped coach underage teams at Clonmel Commercials.
       </p>
+      <PlayDiagram />
       <p data-reveal>
         The rest of the time, I'm probably watching a film.
       </p>

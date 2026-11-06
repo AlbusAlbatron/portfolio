@@ -30,8 +30,22 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
   uses the CSS `rotate` property, so anything that is also moved must use `translate`, not `transform`
   (WinGravity windows, CV hover cards).
 - Magnetic pull applies automatically to `.button`, nav links and WinGravity taskbar buttons.
-- Home 3D scene: `src/scripts/hero3d.ts`, dynamically imported by `index.astro` after the wipe settles; renders
-  only while visible, ~30fps when idle. Keep three.js out of every other page.
+- Home 3D scene: `src/scripts/hero3d.ts`, dynamically imported by `index.astro` on the first interaction
+  (pointer/scroll/keys, idle fallback) and never on phones, Save-Data or low-end devices; renders only while
+  visible, ~30fps when idle. Use named three imports (tree-shaking) and avoid generated environment maps or
+  physical materials — they froze the page for ~0.6s on mount. Keep three.js out of every other page.
+- Section index + reading progress: tag sections `data-index="Label"` (prose `h2`s are picked up
+  automatically); `src/scripts/progress.ts` builds the left-margin index (≥ 87.5rem wide only).
+- Project titles' letter-weight effect needs the per-letter `.wl` spans in `ProjectList.astro` plus an
+  `sr-only` copy of the title.
+- Skills marquee: `<Marquee items={...} label="..." />`; speed and lean follow scroll velocity.
+- `src/styles/desktop.css` is the shared WinGravity desktop shell (WinGravity page and `404.astro`).
+  `data-autostart="ms"` on `[data-desktop]` turns gravity on by itself.
+- Share image `public/og.png` (1200×630) and `public/apple-touch-icon.png` are rendered from HTML designs —
+  regenerate them if the name, tagline or palette changes. Code highlighting uses Shiki's `css-variables`
+  theme with the `--astro-code-*` palette in `global.css`.
+- Links prefetch on hover (`prefetch` in `astro.config.mjs`); fonts are preloaded in `Base.astro`.
+- Quality bar: Lighthouse 97–100 on every page (desktop + mobile), axe clean, CLS 0.
 - `<html>` attributes are replaced on every navigation, so anything that adds classes to it (Lenis,
   `has-cursor`, `js`) re-adds them on `astro:after-swap`.
 - `compressHTML` is off: it strips the space between a line-wrapped word and a following inline tag. The flip

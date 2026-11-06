@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import '../styles/desktop.css';
+---
+
+<Base title="Page not found" description="This page doesn't exist — it fell over.">
+  <section class="wrap lost" data-surface="dark" aria-labelledby="lost-title">
+    <div class="desktop theme-dark" data-desktop data-autostart="700">
+      <div class="screen" data-screen>
+        <article class="win win--big" data-window data-tilt="5" data-glare data-title="404.txt" data-x="0.06" data-y="0.08" data-mx="0.04" data-my="0.03">
+          <header class="win__bar" data-titlebar data-cursor="drag">
+            <span class="win__title">404.txt</span>
+            <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </header>
+          <div class="win__body">
+            <h1 id="lost-title" class="lost__code">404</h1>
+            <p class="lost__line">This page fell over.</p>
+            <p>Whatever was here doesn't exist. Grab a window by its title bar and throw it around while you're here.</p>
+          </div>
+        </article>
+
+        <article class="win win--log" data-window data-tilt="5" data-glare data-title="error.log" data-x="0.6" data-y="0.5" data-mx="0.06" data-my="0.74">
+          <header class="win__bar" data-titlebar data-cursor="drag">
+            <span class="win__title">error.log</span>
+            <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </header>
+          <div class="win__body">
+            <pre><code>ERROR 404  <span data-missing-path>page</span> not found
+  at alby.software
+  hint: gravity is on, try the links</code></pre>
+          </div>
+        </article>
+
+        <!-- Last, so it is painted on top when the windows pile up. -->
+        <article class="win" data-window data-tilt="5" data-glare data-title="links.txt" data-x="0.56" data-y="0.1" data-mx="0.12" data-my="0.48">
+          <header class="win__bar" data-titlebar data-cursor="drag">
+            <span class="win__title">links.txt</span>
+            <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          </header>
+          <div class="win__body">
+            <nav class="lost__links" aria-label="Where to go instead">
+              <a class="button" href="/">Home</a>
+              <a class="button button--ghost" href="/projects">Projects</a>
+              <a class="button button--ghost" href="/cv">CV</a>
+            </nav>
+          </div>
+        </article>
+      </div>
+
+      <div class="taskbar">
+        <span class="taskbar__start label">alby.software</span>
+        <div class="taskbar__actions">
+          <button type="button" class="taskbar__btn taskbar__btn--primary" data-gravity-toggle aria-pressed="false">
+            Turn on gravity
+          </button>
+          <button type="button" class="taskbar__btn" data-reset>Reset</button>
+        </div>
+        <span class="taskbar__clock label" data-clock></span>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { mountDesktop } from '../scripts/gravity/desktop';
+
+  let unmount: (() => void) | undefined;
+
+  document.addEventListener('astro:page-load', () => {
+    const root = document.querySelector<HTMLElement>('[data-desktop]');
+    if (!root) return;
+    const missing = root.querySelector('[data-missing-path]');
+    if (missing) missing.textContent = location.pathname;
+    unmount = mountDesktop(root);
+  });
+
+  document.addEventListener('astro:before-swap', () => {
+    unmount?.();
+    unmount = undefined;
+  });
+</script>
+
+<style>
+  .lost {
+    padding-block: clamp(1.5rem, 4vw, 3rem) 0;
+  }
+
+  .lost :global(.desktop) {
+    --screen-h: clamp(28rem, calc(100svh - 14rem), 48rem);
+  }
+
+  .win--big {
+    width: min(24rem, 86%);
+  }
+
+  .lost__code {
+    margin: 0;
+    font-size: clamp(4rem, 12vw, 6.5rem);
+    letter-spacing: -0.06em;
+    line-height: 0.9;
+    color: var(--text);
+  }
+
+  .lost__line {
+    margin: 0.4rem 0 0.75rem;
+    font-size: 1.2rem;
+    color: var(--text);
+  }
+
+  .lost__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+</style>

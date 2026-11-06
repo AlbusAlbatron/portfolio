@@ -1,0 +1,185 @@
+---
+// A playbook doodle: X/O formation with go, slant, post and flat routes, drawn in as it scrolls into view.
+const arrow = (x1: number, y1: number, x2: number, y2: number, size = 11) => {
+  const a = Math.atan2(y2 - y1, x2 - x1);
+  const p = (d: number) => `${x2 - size * Math.cos(a + d)} ${y2 - size * Math.sin(a + d)}`;
+  return `M${p(0.5)} L${x2} ${y2} L${p(-0.5)}`;
+};
+
+const offense = [
+  [250, 268], [285, 268], [355, 268], [390, 268], // line
+  [320, 305], [320, 340], // QB, RB
+  [60, 268], [140, 276], [425, 270], [560, 276], // X, H, Y, Z
+];
+const defense = [
+  [265, 232], [302, 232], [338, 232], [375, 232],
+  [255, 190], [320, 185], [385, 190],
+  [60, 205], [560, 212], [210, 95], [430, 95],
+];
+const routes = [
+  { d: 'M60 255 L60 40', head: arrow(60, 60, 60, 40) },
+  { d: 'M140 263 L140 238 L235 160', head: arrow(140, 238, 235, 160) },
+  { d: 'M560 263 L560 150 L470 60', head: arrow(560, 150, 470, 60) },
+  { d: 'M332 340 C 380 340 430 322 520 318', head: arrow(430, 322, 520, 318) },
+];
+---
+
+<figure class="play" data-play>
+  <svg viewBox="0 0 640 360" role="img" aria-labelledby="play-caption">
+    <g class="play__field">
+      {[30, 90, 150, 210, 330].map((y) => <line x1="0" x2="640" y1={y} y2={y} />)}
+      <line class="play__los" x1="0" x2="640" y1="250" y2="250" />
+    </g>
+    <g class="play__defense">
+      {defense.map(([x, y]) => <path data-player d={`M${x - 8} ${y - 8} L${x + 8} ${y + 8} M${x + 8} ${y - 8} L${x - 8} ${y + 8}`} />)}
+    </g>
+    <g class="play__routes">
+      {routes.map((r) => <g data-route><path class="play__route" d={r.d} pathLength="1" /><path class="play__head" d={r.head} /></g>)}
+    </g>
+    <path class="play__ball-path" data-ball-path d="M320 292 Q 430 130 468 66" />
+    <g class="play__offense">
+      <rect data-player x="309" y="257" width="22" height="22" rx="3" />
+      {offense.map(([x, y]) => <circle data-player cx={x} cy={y} r="11" />)}
+    </g>
+    <ellipse class="play__ball" data-ball cx="320" cy="292" rx="8" ry="5" />
+  </svg>
+  <figcaption id="play-caption" class="label">Playbook doodle — go, slant, post and flat routes</figcaption>
+</figure>
+
+<script>
+  let cleanup: (() => void) | undefined;
+
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
+
+  document.addEventListener('astro:page-load', () => {
+    cleanup?.();
+    cleanup = undefined;
+    const fig = document.querySelector<HTMLElement>('[data-play]');
+    if (!fig || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const players = [...fig.querySelectorAll<SVGElement>('[data-player]')];
+    const routes = [...fig.querySelectorAll<SVGGElement>('[data-route]')].map((g) => ({
+      line: g.querySelector<SVGPathElement>('.play__route')!,
+      head: g.querySelector<SVGPathElement>('.play__head')!,
+    }));
+    const ballPath = fig.querySelector<SVGPathElement>('[data-ball-path]')!;
+    const ball = fig.querySelector<SVGEllipseElement>('[data-ball]')!;
+    const ballLen = ballPath.getTotalLength();
+    let raf = 0;
+
+    const draw = () => {
+      raf = 0;
+      const r = fig.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const p = clamp((vh * 0.92 - r.top) / (vh * 0.62));
+      players.forEach((el, i) => (el.style.opacity = String(clamp((p - i * 0.012) / 0.15))));
+      routes.forEach(({ line, head }, k) => {
+        const t = clamp((p - 0.28 - k * 0.07) / 0.32);
+        line.style.strokeDashoffset = String(1 - t);
+        head.style.opacity = t > 0.97 ? '1' : '0';
+      });
+      const b = clamp((p - 0.8) / 0.18);
+      ballPath.style.opacity = String(clamp(b * 3) * 0.7);
+      const pt = ballPath.getPointAtLength(ballLen * b);
+      ball.setAttribute('cx', pt.x.toFixed(1));
+      ball.setAttribute('cy', pt.y.toFixed(1));
+      ball.style.opacity = b > 0 ? '1' : '0';
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(draw);
+    };
+
+    fig.classList.add('is-animated');
+    draw();
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) window.addEventListener('scroll', schedule, { passive: true });
+      else window.removeEventListener('scroll', schedule);
+      schedule();
+    });
+    io.observe(fig);
+    cleanup = () => {
+      io.disconnect();
+      window.removeEventListener('scroll', schedule);
+      cancelAnimationFrame(raf);
+    };
+  });
+
+  document.addEventListener('astro:before-swap', () => {
+    cleanup?.();
+    cleanup = undefined;
+  });
+</script>
+
+<style>
+  .play {
+    margin: 2rem 0 2.5rem;
+    color: var(--text);
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-raised);
+  }
+
+  .play__field line {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+
+  .play__field .play__los {
+    stroke: var(--text-muted);
+    stroke-dasharray: 6 6;
+  }
+
+  .play__defense path {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .play__offense circle,
+  .play__offense rect {
+    fill: var(--bg-raised);
+    stroke: currentColor;
+    stroke-width: 2.5;
+  }
+
+  .play__route,
+  .play__head {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .play__route {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .play__ball-path {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+    stroke-dasharray: 2 7;
+    stroke-linecap: round;
+    opacity: 0.7;
+  }
+
+  .play__ball {
+    fill: currentColor;
+    transform-box: fill-box;
+    transform-origin: center;
+    rotate: -50deg;
+  }
+
+  figcaption {
+    margin-top: 0.75rem;
+  }
+</style>

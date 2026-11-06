@@ -1,0 +1,13 @@
+{
+  "name": "Alby McNamara",
+  "short_name": "Alby",
+  "description": "Portfolio of Alby McNamara, software engineering student at the University of Limerick.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#26201b",
+  "theme_color": "#26201b",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

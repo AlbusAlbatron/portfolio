@@ -37,7 +37,7 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
   </header>
 
   <div class="wrap cv" data-surface="light">
-    <section class="row" aria-labelledby="profile">
+    <section class="row" aria-labelledby="profile" data-index="Profile">
       <h2 id="profile" class="label row__label" data-reveal>Profile</h2>
       <ul class="row__body plain" data-reveal>
         {profile.map((p) => <li>{p}</li>)}
@@ -46,7 +46,7 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
 
     {
       sections.map((s) => (
-        <section class="row" aria-labelledby={s.id}>
+        <section class="row" aria-labelledby={s.id} data-index={s.title}>
           <h2 id={s.id} class="label row__label" data-reveal>
             {s.title}
           </h2>
@@ -85,7 +85,7 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
       ))
     }
 
-    <section class="row" aria-labelledby="skills">
+    <section class="row" aria-labelledby="skills" data-index="Skills">
       <h2 id="skills" class="label row__label" data-reveal>Technical skills</h2>
       <dl class="row__body pairs" data-reveal>
         {
@@ -99,7 +99,7 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
       </dl>
     </section>
 
-    <section class="row" aria-labelledby="additional">
+    <section class="row" aria-labelledby="additional" data-index="Awards">
       <h2 id="additional" class="label row__label" data-reveal>Awards & more</h2>
       <dl class="row__body pairs" data-reveal>
         {
@@ -113,7 +113,7 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
       </dl>
     </section>
 
-    <section class="row" aria-labelledby="interests">
+    <section class="row" aria-labelledby="interests" data-index="Interests">
       <h2 id="interests" class="label row__label" data-reveal>Interests</h2>
       <p class="row__body" data-reveal>{interests}</p>
     </section>
