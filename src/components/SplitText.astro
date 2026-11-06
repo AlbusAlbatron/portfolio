@@ -19,11 +19,14 @@ const parts = by === 'char' ? [...text] : text.split(/\s+/);
 <Tag class:list={['split', className]} aria-label={text} data-liquid {...rest}>{parts.map((part, i) => <><span class="split__mask" aria-hidden="true"><span class="split__part" style={`--d: ${delay + i * step}ms`}>{part}</span></span>{by === 'word' && i < parts.length - 1 ? ' ' : ''}</>)}</Tag>
 
 <style>
+  /* Clip vertically only (that's all the rise needs); clipping sideways shaves the overhanging edges off
+     tightly spaced glyphs, which then don't match the full glyphs the liquid canvas draws. */
   .split__mask {
     display: inline-block;
-    overflow: clip;
-    padding-bottom: 0.14em;
-    margin-bottom: -0.14em;
+    overflow-x: visible;
+    overflow-y: clip;
+    padding-block: 0.12em 0.16em;
+    margin-block: -0.12em -0.16em;
     vertical-align: top;
   }
 

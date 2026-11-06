@@ -7,6 +7,9 @@ const DAMPING = 0.986;
 const STEPS_PER_FRAME = 2;
 const IDLE_MS = 2600;
 const DPR_MAX = 2;
+// Cross-fades hide the sub-pixel difference between Chrome's DOM text and canvas text rendering.
+const FADE_IN_MS = 180;
+const FADE_OUT_MS = 280;
 
 const VERT = `#version 300 es
 in vec2 aPos;
@@ -104,6 +107,7 @@ let box = { w: 0, h: 0 };
 let color: [number, number, number] = [1, 1, 1];
 let current = 0;
 let pending: { x: number; y: number; s: number }[] = [];
+let fadeTimer = 0;
 
 function compile(gl: WebGL2RenderingContext, frag: string): WebGLProgram {
   const make = (type: number, src: string) => {
@@ -189,14 +193,13 @@ function parseColor(value: string): [number, number, number] {
   return [m[0] * scale, m[1] * scale, m[2] * scale];
 }
 
-function drawText(el: HTMLElement, w: number, h: number, dpr: number): HTMLCanvasElement {
+function drawText(el: HTMLElement, w: number, h: number, dpr: number, originX: number, originY: number): HTMLCanvasElement {
   const out = document.createElement('canvas');
   out.width = Math.round(w * dpr);
   out.height = Math.round(h * dpr);
   const g = out.getContext('2d')!;
   g.scale(dpr, dpr);
   g.fillStyle = '#fff';
-  const origin = el.getBoundingClientRect();
   const range = document.createRange();
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
@@ -217,7 +220,7 @@ function drawText(el: HTMLElement, w: number, h: number, dpr: number): HTMLCanva
           const asc = m.fontBoundingBoxAscent;
           const desc = m.fontBoundingBoxDescent;
           const baseline = r.top + (r.height - (asc + desc)) / 2 + asc;
-          g.fillText(ch, r.left - origin.left + pad, baseline - origin.top + pad);
+          g.fillText(ch, r.left - originX, baseline - originY);
         }
       }
       i += len;
@@ -281,12 +284,20 @@ function frame() {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   gl.activeTexture(gl.TEXTURE0);
 
-  if (performance.now() - lastInput > IDLE_MS) deactivate();
+  if (performance.now() - lastInput > IDLE_MS) settle();
   else raf = requestAnimationFrame(frame);
 }
 
 function busy(el: HTMLElement) {
-  return el.getAnimations({ subtree: true }).some((a) => a.playState === 'running');
+  return el
+    .getAnimations({ subtree: true })
+    .some((a) => a.playState === 'running' && (a.effect as KeyframeEffect | null)?.target !== ctx?.canvas);
+}
+
+function fade(to: number, ms: number) {
+  const c = ctx!.canvas;
+  c.style.transition = `opacity ${ms}ms ease`;
+  c.style.opacity = String(to);
 }
 
 function activate(el: HTMLElement) {
@@ -303,10 +314,14 @@ function activate(el: HTMLElement) {
   canvas.height = Math.round(box.h * dpr);
   canvas.style.width = `${box.w}px`;
   canvas.style.height = `${box.h}px`;
-  canvas.style.left = `${-pad}px`;
-  canvas.style.top = `${-pad}px`;
+  // Snap the canvas to whole device pixels; a fractional position gets resampled and no longer lines up
+  // exactly with the DOM text it replaces.
+  const fx = ((((rect.left - pad) * dpr) % 1) + 1) % 1 / dpr;
+  const fy = ((((rect.top - pad) * dpr) % 1) + 1) % 1 / dpr;
+  canvas.style.left = `${-pad - fx}px`;
+  canvas.style.top = `${-pad - fy}px`;
 
-  const text = drawText(el, box.w, box.h, dpr);
+  const text = drawText(el, box.w, box.h, dpr, rect.left - pad - fx, rect.top - pad - fy);
   gl.bindTexture(gl.TEXTURE_2D, ctx.textTex);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -322,16 +337,34 @@ function activate(el: HTMLElement) {
   active = el;
   lastPoint = null;
   lastInput = performance.now();
+  clearTimeout(fadeTimer);
+  canvas.style.transition = 'none';
+  canvas.style.opacity = '0';
   el.appendChild(canvas);
-  // Draw the first frame before the DOM text is hidden, so there's never an empty frame.
   cancelAnimationFrame(raf);
   frame();
-  el.classList.add('is-liquid');
+  // Fade the canvas in over the still-visible DOM text, then hide the DOM text underneath.
+  canvas.getBoundingClientRect();
+  fade(1, FADE_IN_MS);
+  fadeTimer = window.setTimeout(() => {
+    if (active === el) el.classList.add('is-liquid');
+  }, FADE_IN_MS);
   return true;
+}
+
+function settle() {
+  cancelAnimationFrame(raf);
+  raf = 0;
+  active?.classList.remove('is-liquid');
+  active = null;
+  pending = [];
+  fade(0, FADE_OUT_MS);
+  fadeTimer = window.setTimeout(() => ctx?.canvas.remove(), FADE_OUT_MS);
 }
 
 function deactivate() {
   cancelAnimationFrame(raf);
+  clearTimeout(fadeTimer);
   raf = 0;
   if (active) active.classList.remove('is-liquid');
   ctx?.canvas.remove();
