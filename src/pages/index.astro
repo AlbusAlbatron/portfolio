@@ -13,7 +13,7 @@ const info = [
 
 <Base>
   <section class="hero wrap" data-surface="dark">
-    <div class="hero__scene" data-hero-scene aria-hidden="true"></div>
+    <div class="hero__scene" data-hero-scene data-facts={JSON.stringify(info)} aria-hidden="true"></div>
     <p class="label" data-reveal>Software engineering student — University of Limerick</p>
     <SplitText text="Alby" by="char" class="hero__name" delay={120} data-parallax="0.18" />
     <p class="hero__intro" data-reveal style="--reveal-delay: 180">
@@ -104,7 +104,10 @@ const info = [
     const mount = async () => {
       if (!container.isConnected) return;
       const { mountHero3D } = await import('../scripts/hero3d');
-      const cleanup = await mountHero3D(container);
+      // Facts go on the 3D windows only where they're big enough to read; phones keep the HTML card.
+      const wide = window.matchMedia('(min-width: 48.01rem)').matches;
+      const facts = wide ? JSON.parse(container.dataset.facts ?? '[]') : [];
+      const cleanup = await mountHero3D(container, facts);
       if (container.isConnected) dispose = cleanup;
       else cleanup();
     };
@@ -143,7 +146,7 @@ const info = [
   .hero__scene {
     position: absolute;
     /* Bleed past the content column to the viewport edge so windows aren't clipped. */
-    inset: 0 calc((100% - 100vw) / 2) 0 42%;
+    inset: 0 calc((100% - 100vw) / 2 + var(--gutter)) 0 46%;
     z-index: 0;
     opacity: 0;
     transition: opacity 1.2s var(--ease);
@@ -151,6 +154,17 @@ const info = [
 
   .hero__scene.is-ready {
     opacity: 1;
+  }
+
+  /* Once the facts are drawn on the 3D windows, the card stays only for screen readers. */
+  .hero:has(.hero__scene.has-text) .hero__info {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .hero__scene :global(canvas) {

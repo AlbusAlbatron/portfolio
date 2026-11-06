@@ -1,13 +1,58 @@
 // Floating stack of 3D "windows" behind the home hero. Three.js is imported on demand so no other page pays for it.
 
+// Staggered 2x2 so no window hides another's text.
 const WINDOWS = [
-  { pos: [-0.95, 0.85, 0.2], rot: [0.08, 0.32, -0.05], scale: 1.05, lines: [0.7, 0.55, 0.62] },
-  { pos: [0.85, 0.35, -0.9], rot: [-0.05, -0.28, 0.06], scale: 0.95, lines: [0.5, 0.66] },
-  { pos: [-0.35, -0.75, 0.75], rot: [0.12, 0.18, 0.04], scale: 0.9, lines: [0.6, 0.45, 0.7, 0.35] },
-  { pos: [1.15, -1.0, -0.2], rot: [-0.1, -0.4, -0.08], scale: 0.8, lines: [0.55, 0.4] },
+  { pos: [-1.2, 1.0, 0.25], rot: [0.04, 0.16, -0.03], lines: [0.7, 0.55, 0.62] },
+  { pos: [1.15, 0.7, -0.25], rot: [-0.03, -0.14, 0.03], lines: [0.5, 0.66] },
+  { pos: [-1.0, -0.85, -0.15], rot: [0.05, 0.12, 0.02], lines: [0.6, 0.45, 0.7, 0.35] },
+  { pos: [1.3, -1.1, 0.3], rot: [-0.04, -0.18, -0.03], lines: [0.55, 0.4] },
 ] as const;
+const SCALE = 0.85;
 
-export async function mountHero3D(container: HTMLElement): Promise<() => void> {
+export interface Fact {
+  label: string;
+  value: string;
+  clock?: boolean;
+}
+
+const TEX_W = 1024;
+const TEX_H = 597; // matches the 2.4 x 1.4 text plane
+const timeFormat = new Intl.DateTimeFormat('en-IE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Dublin' });
+
+function drawFact(canvas: HTMLCanvasElement, fact: Fact) {
+  const g = canvas.getContext('2d')!;
+  g.clearRect(0, 0, TEX_W, TEX_H);
+  g.textBaseline = 'alphabetic';
+  g.fillStyle = '#a89e92';
+  g.font = '400 50px "JetBrains Mono", ui-monospace, monospace';
+  g.letterSpacing = '4px';
+  g.fillText(fact.label.toUpperCase(), 56, 104);
+
+  g.fillStyle = '#f4efe7';
+  g.font = '500 88px "Inter Tight Variable", system-ui, sans-serif';
+  g.letterSpacing = '-1px';
+  const words = fact.value.split(' ');
+  const lines: string[] = [];
+  let line = '';
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+    if (g.measureText(next).width > TEX_W - 112 && line) {
+      lines.push(line);
+      line = word;
+    } else line = next;
+  }
+  lines.push(line);
+  lines.slice(0, 3).forEach((l, i) => g.fillText(l, 56, 240 + i * 100));
+
+  if (fact.clock) {
+    g.fillStyle = '#a89e92';
+    g.font = '400 48px "JetBrains Mono", ui-monospace, monospace';
+    g.letterSpacing = '2px';
+    g.fillText(`${timeFormat.format(new Date())} local time`, 56, TEX_H - 60);
+  }
+}
+
+export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): Promise<() => void> {
   const [THREE, { RoundedBoxGeometry }, { RoomEnvironment }] = await Promise.all([
     import('three'),
     import('three/examples/jsm/geometries/RoundedBoxGeometry.js'),
@@ -29,7 +74,7 @@ export async function mountHero3D(container: HTMLElement): Promise<() => void> {
   const pmrem = new THREE.PMREMGenerator(renderer);
   const env = pmrem.fromScene(new RoomEnvironment(), 0.04);
   scene.environment = env.texture;
-  scene.environmentIntensity = 0.3;
+  scene.environmentIntensity = 0.15;
 
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
   camera.position.set(0, 0, 10);
@@ -46,14 +91,32 @@ export async function mountHero3D(container: HTMLElement): Promise<() => void> {
   const dotGeo = track(new THREE.CircleGeometry(0.045, 20));
   const lineGeo = track(new THREE.PlaneGeometry(1, 0.06));
   const bodyMat = track(
-    new THREE.MeshPhysicalMaterial({ color: 0x2b241f, roughness: 0.38, metalness: 0.05, clearcoat: 0.6, clearcoatRoughness: 0.4 }),
+    new THREE.MeshPhysicalMaterial({ color: 0x2b241f, roughness: 0.6, metalness: 0.05, clearcoat: 0.3, clearcoatRoughness: 0.5 }),
   );
   const barMat = track(new THREE.MeshStandardMaterial({ color: 0xeee8de, roughness: 0.55 }));
   const dotMat = track(new THREE.MeshBasicMaterial({ color: 0x5e554c }));
   const lineMat = track(new THREE.MeshBasicMaterial({ color: 0x8c8276, transparent: true, opacity: 0.55 }));
+  const textGeo = track(new THREE.PlaneGeometry(2.4, 1.4));
 
+  if (facts.length) {
+    await Promise.all([
+      document.fonts.load('500 88px "Inter Tight Variable"'),
+      document.fonts.load('400 50px "JetBrains Mono"'),
+    ]).catch(() => {});
+  }
+  const factTextures = facts.slice(0, WINDOWS.length).map((fact) => {
+    const c = document.createElement('canvas');
+    c.width = TEX_W;
+    c.height = TEX_H;
+    drawFact(c, fact);
+    const tex = track(new THREE.CanvasTexture(c));
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return { fact, canvas: c, tex };
+  });
+
+  const GROUP_Y = 0;
   const group = new THREE.Group();
-  group.position.set(0.6, 0.2, 0);
   scene.add(group);
 
   const windows = WINDOWS.map((spec, i) => {
@@ -68,15 +131,23 @@ export async function mountHero3D(container: HTMLElement): Promise<() => void> {
       dot.position.set(1.05 - d * 0.14, 0.75, 0.067);
       win.add(dot);
     }
-    spec.lines.forEach((w, l) => {
-      const line = new THREE.Mesh(lineGeo, lineMat);
-      line.scale.x = w * 2.1;
-      line.position.set(-1.15 + (w * 2.1) / 2, 0.35 - l * 0.24, 0.056);
-      win.add(line);
-    });
+    const text = factTextures[i];
+    if (text) {
+      const mat = track(new THREE.MeshBasicMaterial({ map: text.tex, transparent: true, toneMapped: false }));
+      const plane = new THREE.Mesh(textGeo, mat);
+      plane.position.set(0, -0.15, 0.056);
+      win.add(plane);
+    } else {
+      spec.lines.forEach((w, l) => {
+        const line = new THREE.Mesh(lineGeo, lineMat);
+        line.scale.x = w * 2.1;
+        line.position.set(-1.15 + (w * 2.1) / 2, 0.35 - l * 0.24, 0.056);
+        win.add(line);
+      });
+    }
     win.position.set(spec.pos[0], spec.pos[1], spec.pos[2]);
     win.rotation.set(spec.rot[0], spec.rot[1], spec.rot[2]);
-    win.scale.setScalar(spec.scale);
+    win.scale.setScalar(SCALE);
     group.add(win);
     return { win, body, base: new THREE.Vector3(spec.pos[0], spec.pos[1], spec.pos[2]), phase: i * 1.7, lift: 0 };
   });
@@ -122,12 +193,20 @@ export async function mountHero3D(container: HTMLElement): Promise<() => void> {
     canvas.addEventListener('pointercancel', onUp);
   }
 
+  // Pull the camera back until the whole cluster (plus room for tilting) fits the canvas at any size.
+  const bounds = new THREE.Box3().setFromObject(group);
+  const size = bounds.getSize(new THREE.Vector3());
+  const halfTan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+
   const resize = () => {
     const w = container.clientWidth;
     const h = container.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
+    const fitH = (size.y * 1.15) / 2 / halfTan;
+    const fitW = (size.x * 1.15) / 2 / (halfTan * camera.aspect);
+    camera.position.z = Math.max(fitH, fitW) + size.z;
     camera.updateProjectionMatrix();
     if (reduce) renderer.render(scene, camera);
   };
@@ -156,11 +235,11 @@ export async function mountHero3D(container: HTMLElement): Promise<() => void> {
       spin += spinVel;
     }
     const scroll = Math.min(window.scrollY / window.innerHeight, 1.5);
-    const targetY = pointer.x * 0.35 + spin + Math.sin(t * 0.25) * 0.08;
-    const targetX = pointer.y * 0.22 + scroll * 0.5;
+    const targetY = pointer.x * 0.2 + spin + Math.sin(t * 0.25) * 0.05;
+    const targetX = pointer.y * 0.12 + scroll * 0.5;
     group.rotation.y += (targetY - group.rotation.y) * 0.08;
     group.rotation.x += (targetX - group.rotation.x) * 0.08;
-    group.position.y = 0.2 + scroll * 1.2;
+    group.position.y = GROUP_Y + scroll * 1.2;
 
     ray.setFromCamera(ndc, camera);
     const hit = fine && !dragging ? ray.intersectObjects(windows.map((w) => w.body), false)[0] : undefined;
@@ -191,12 +270,23 @@ export async function mountHero3D(container: HTMLElement): Promise<() => void> {
   const onVisibility = () => (document.hidden ? stop() : start());
   document.addEventListener('visibilitychange', onVisibility);
 
+  const clockText = factTextures.find((t) => t.fact.clock);
+  const clockTimer = clockText
+    ? window.setInterval(() => {
+        drawFact(clockText.canvas, clockText.fact);
+        clockText.tex.needsUpdate = true;
+        if (!raf) renderer.render(scene, camera);
+      }, 30_000)
+    : 0;
+
   renderer.render(scene, camera);
   container.classList.add('is-ready');
+  if (factTextures.length) container.classList.add('has-text');
   start();
 
   return () => {
     stop();
+    clearInterval(clockTimer);
     io.disconnect();
     ro.disconnect();
     document.removeEventListener('visibilitychange', onVisibility);
