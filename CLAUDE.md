@@ -23,6 +23,15 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
   own `background: var(--bg)`. Code blocks use the raw `--dark-*` values.
 - Big headings: `<SplitText text="…" by="word|char" />` (staggered rise), optionally `data-parallax="0.12"`.
 - Cursor states: `data-cursor="view"` or `"drag"` on an element; links/buttons get the hover ring automatically.
+- Liquid ripple: `data-liquid` on large display text only (SplitText adds it). `src/scripts/liquid.ts` moves one
+  shared WebGL2 canvas into the hovered element and hands back to the DOM text once the ripples settle. Never on
+  links or body copy.
+- 3D tilt: `data-tilt="5"` (max degrees) plus optional `data-glare`; glare targets must be positioned. Tilt
+  uses the CSS `rotate` property, so anything that is also moved must use `translate`, not `transform`
+  (WinGravity windows, CV hover cards).
+- Magnetic pull applies automatically to `.button`, nav links and WinGravity taskbar buttons.
+- Home 3D scene: `src/scripts/hero3d.ts`, dynamically imported by `index.astro` after the wipe settles; renders
+  only while visible, ~30fps when idle. Keep three.js out of every other page.
 - `<html>` attributes are replaced on every navigation, so anything that adds classes to it (Lenis,
   `has-cursor`, `js`) re-adds them on `astro:after-swap`.
 - `compressHTML` is off: it strips the space between a line-wrapped word and a following inline tag. The flip

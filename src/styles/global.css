@@ -295,6 +295,60 @@ body::after {
   will-change: translate;
 }
 
+/* Liquid display text (src/scripts/liquid.ts). */
+[data-liquid] {
+  position: relative;
+}
+
+.is-liquid,
+.is-liquid * {
+  color: transparent !important;
+}
+
+.liquid-canvas {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 3D tilt + glare (src/scripts/tilt.ts). Parents supply the perspective. */
+:has(> [data-tilt]) {
+  perspective: 1000px;
+}
+
+[data-tilt] {
+  transition: rotate 0.6s var(--ease);
+}
+
+[data-tilt].is-tilting {
+  transition: rotate 0.15s linear;
+}
+
+[data-glare] {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+[data-glare]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--gx, 50%) var(--gy, 50%),
+    color-mix(in srgb, var(--dark-text) 16%, transparent),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+
+[data-glare].is-tilting::after {
+  opacity: 1;
+}
+
 /* Hold incoming headline animations until the page wipe starts revealing the page. */
 html.is-wiping .split__part {
   animation-play-state: paused;

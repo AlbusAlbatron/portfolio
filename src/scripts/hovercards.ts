@@ -19,6 +19,7 @@ export function mountHoverCards(root: ParentNode = document): () => void {
     raf = 0;
     if (!active) return;
     const card = cardOf(active);
+    const wrap = card.parentElement!;
     const w = card.offsetWidth;
     const h = card.offsetHeight;
     let x = target.x + OFFSET;
@@ -28,7 +29,12 @@ export function mountHoverCards(root: ParentNode = document): () => void {
     const k = reduceMotion.matches ? 1 : 0.18;
     current.x += (x - current.x) * k;
     current.y += (y - current.y) * k;
-    card.style.transform = `translate3d(${current.x}px, ${current.y}px, 0)`;
+    wrap.style.translate = `${current.x}px ${current.y}px`;
+    // Lean into the direction of travel; settles flat as the card catches up.
+    const lx = Math.max(-12, Math.min(12, (y - current.y) * -0.12));
+    const ly = Math.max(-12, Math.min(12, (x - current.x) * 0.12));
+    const angle = Math.hypot(lx, ly);
+    card.style.rotate = reduceMotion.matches || angle < 0.05 ? '' : `${lx / angle} ${ly / angle} 0 ${angle}deg`;
     if (Math.abs(x - current.x) > 0.5 || Math.abs(y - current.y) > 0.5) raf = requestAnimationFrame(place);
   };
 

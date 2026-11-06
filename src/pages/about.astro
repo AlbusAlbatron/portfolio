@@ -65,7 +65,7 @@ const facts = [
           </figure>
         )
       }
-      <dl class="facts">
+      <dl class="facts" data-tilt="5" data-glare>
         {
           facts.map((f, i) => (
             <div class="fact" data-reveal style={`--reveal-delay: ${i * 70}`}>
@@ -131,14 +131,21 @@ const facts = [
   }
 
   .facts {
+    position: relative;
     width: 100%;
     margin: 0;
-    border-top: 1px solid var(--line);
+    padding: 0.4rem 1.25rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 14px;
   }
 
   .fact {
     padding: 0.9rem 0;
-    border-bottom: 1px solid var(--line);
+  }
+
+  .fact + .fact {
+    border-top: 1px solid var(--line);
   }
 
   .fact dd {

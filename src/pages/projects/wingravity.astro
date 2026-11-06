@@ -39,7 +39,7 @@ const theme = 'vitesse-dark';
   <section class="wrap" aria-label="Interactive WinGravity demo">
     <div class="desktop theme-dark" data-desktop data-reveal>
       <div class="screen" data-screen>
-        <article class="win" data-window data-title="readme.txt" data-x="0.04" data-y="0.06" data-mx="0.03" data-my="0.02">
+        <article class="win" data-window data-tilt="5" data-glare data-title="readme.txt" data-x="0.04" data-y="0.06" data-mx="0.03" data-my="0.02">
           <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">readme.txt</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -53,7 +53,7 @@ const theme = 'vitesse-dark';
           </div>
         </article>
 
-        <article class="win" data-window data-title="controls.txt" data-x="0.6" data-y="0.05" data-mx="0.14" data-my="0.4">
+        <article class="win" data-window data-tilt="5" data-glare data-title="controls.txt" data-x="0.6" data-y="0.05" data-mx="0.14" data-my="0.4">
           <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">controls.txt</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -67,7 +67,7 @@ const theme = 'vitesse-dark';
           </div>
         </article>
 
-        <article class="win win--code" data-window data-title="gravity.c" data-x="0.22" data-y="0.48" data-mx="0.04" data-my="0.6">
+        <article class="win win--code" data-window data-tilt="5" data-glare data-title="gravity.c" data-x="0.22" data-y="0.48" data-mx="0.04" data-my="0.6">
           <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">gravity.c</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -81,7 +81,7 @@ const theme = 'vitesse-dark';
           </div>
         </article>
 
-        <article class="win win--log" data-window data-title="physics.log" data-x="0.66" data-y="0.52" data-mx="0.16" data-my="0.8">
+        <article class="win win--log" data-window data-tilt="5" data-glare data-title="physics.log" data-x="0.66" data-y="0.52" data-mx="0.16" data-my="0.8">
           <header class="win__bar" data-titlebar data-cursor="drag">
             <span class="win__title">physics.log</span>
             <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -239,7 +239,7 @@ const theme = 'vitesse-dark';
     position: absolute;
     top: 0;
     left: 0;
-    will-change: transform;
+    will-change: translate, rotate;
   }
 
   .win--code {

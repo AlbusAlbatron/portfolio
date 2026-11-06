@@ -42,7 +42,7 @@ export function mountDesktop(root: HTMLElement): () => void {
 
   const render = () => {
     for (const w of wins) {
-      w.el.style.transform = `translate3d(${w.obj.pos.x}px, ${w.obj.pos.y}px, 0)`;
+      w.el.style.translate = `${w.obj.pos.x}px ${w.obj.pos.y}px`;
     }
     if (readout && focused) {
       const v = focused.obj.vel;

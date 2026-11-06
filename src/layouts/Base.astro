@@ -54,10 +54,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       import { initSmooth } from '../scripts/smooth';
       import { initCursor } from '../scripts/cursor';
       import { initWipe } from '../scripts/wipe';
+      import { initLiquid } from '../scripts/liquid';
+      import { initTilt } from '../scripts/tilt';
+      import { initMagnetic } from '../scripts/magnetic';
 
       initSmooth();
       initCursor();
       initWipe();
+      initLiquid();
+      initTilt();
+      initMagnetic();
 
       document.addEventListener('astro:after-swap', () => document.documentElement.classList.add('js'));
       document.addEventListener('astro:page-load', () => {
