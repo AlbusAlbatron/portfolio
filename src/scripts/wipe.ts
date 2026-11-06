@@ -1,4 +1,5 @@
 import type { TransitionBeforePreparationEvent } from 'astro:transitions/client';
+import { claimMorph } from './morph';
 
 const COVER_MS = 450;
 const REVEAL_MS = 650;
@@ -26,7 +27,8 @@ export function initWipe() {
 
   document.addEventListener('astro:before-preparation', (event) => {
     const e = event as TransitionBeforePreparationEvent;
-    if (reduce.matches) return;
+    // Project row <-> project page navigations morph the title instead (see morph.ts).
+    if (claimMorph(e) || reduce.matches) return;
 
     // Pin the colours: the new page resets the surface, which would recolour the panel mid-wipe.
     if (!covering) {

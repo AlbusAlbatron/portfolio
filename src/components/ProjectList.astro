@@ -10,9 +10,9 @@ const projects = (await getCollection('projects')).sort((a, b) => a.data.order -
       <li data-reveal style={`--reveal-delay: ${i * 90}`}>
         <a class="project" href={`/projects/${p.id}`} data-cursor="view" data-tilt="1.5">
           <span class="project__index label">{String(i + 1).padStart(2, '0')}</span>
-          <span class="project__title" data-weight><span class="sr-only">{p.data.title}</span><span aria-hidden="true">{[...p.data.title].map((ch) => <span class="wl">{ch}</span>)}</span></span>
-          <span class="project__summary">{p.data.summary}</span>
-          <span class="project__meta label">
+          <span class="project__title" data-field data-weight data-vt={`project-${p.id}`}><span class="sr-only">{p.data.title}</span><span aria-hidden="true">{[...p.data.title].map((ch) => <span class="wl">{ch}</span>)}</span></span>
+          <span class="project__summary" data-field>{p.data.summary}</span>
+          <span class="project__meta label" data-field>
             {p.data.tech.join(' · ')}
             {p.data.interactive && <span class="project__badge">Playable</span>}
           </span>

@@ -57,6 +57,15 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
 - `transition:persist` must go on an element inside a component (see `Cursor.astro`, `PageWipe.astro`); on a
   `<Component />` tag it is silently ignored and the element is replaced on every navigation.
 - Avoid `mix-blend-mode`/`backdrop-filter` on full-screen fixed layers — they made scrolling and the cursor janky.
+- Title morphs (`src/scripts/morph.ts`): project row ↔ project page navigations (click, "← All projects",
+  browser Back) skip the page wipe and morph the title with a native view transition. Both ends carry
+  `data-vt="project-<id>"`; the `view-transition-name` is set only on the pair being morphed, never statically
+  (named elements would fly over the wipe on other navigations).
+- Home field (`src/scripts/field/`): WebGPU stable-fluids sim + 2D radiance-cascade light on a fixed canvas at
+  z-index -1, home page only, loaded after the hero 3D scene. `data-field` marks what blocks the fluid and
+  casts shadows (text line boxes; `data-field="box"` for the element's own box, e.g. cards). Everything is a
+  mix of `--bg` toward `--text`, capped at 14% (dark) / 10% (light) so `--text-muted` keeps 4.5:1 — keep the
+  caps in `shaders.ts` if retuning. Off without WebGPU, on touch, reduced motion, Save-Data or low-end devices.
 - Scroll reveal: add `data-reveal` (optional `style="--reveal-delay: 120"` in ms). Handled by `src/scripts/reveal.ts`.
 - Page scripts run under the client router: initialise on `astro:page-load`, clean up on `astro:before-swap`.
 - Site-wide details (name, email, links) live in `src/data/site.ts`.

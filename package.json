@@ -23,6 +23,7 @@
     "@astrojs/check": "^0.9.12",
     "@types/node": "^26.6.6",
     "@types/three": "^0.187.0",
+    "@webgpu/types": "^0.1.74",
     "typescript": "^6.0.3"
   }
 }

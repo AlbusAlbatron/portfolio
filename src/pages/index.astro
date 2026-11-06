@@ -4,30 +4,30 @@ import ProjectList from '../components/ProjectList.astro';
 import SplitText from '../components/SplitText.astro';
 import Marquee from '../components/Marquee.astro';
 
-const skills = ['C', 'Win32 API', 'Windows Services', 'Java', 'Python', 'HTML/CSS', 'Git', 'Linux', 'Algorithms', 'OOP'];
+const skills = ['Java', 'Python', 'C', 'HTML/CSS', 'Git', 'Linux', 'Algorithms', 'OOP', 'Win32 API'];
 
 const info = [
   { label: 'Based in', value: 'Limerick, Ireland', clock: true },
   { label: 'Studying', value: 'Immersive Software Engineering, UL' },
-  { label: 'Building', value: 'Low-level tools in C & Win32' },
-  { label: 'Off the clock', value: 'American football, films' },
+  { label: 'Learning', value: 'Java, Python and C' },
+  { label: 'Off the clock', value: 'Sport and films' },
 ];
 ---
 
 <Base>
   <section class="hero wrap" data-surface="dark" data-index="Intro">
     <div class="hero__scene" data-hero-scene data-facts={JSON.stringify(info)} aria-hidden="true"></div>
-    <p class="label" data-reveal>Software engineering student — University of Limerick</p>
-    <SplitText text="Alby" by="char" class="hero__name" delay={120} data-parallax="0.18" />
-    <p class="hero__intro" data-reveal style="--reveal-delay: 180">
-      I'm a first-year Immersive Software Engineering student. I like finding strange things to make a computer
-      do — mostly in C, mostly by talking straight to Windows.
+    <p class="label" data-reveal data-field>Software engineering student — University of Limerick</p>
+    <SplitText text="Alby" by="char" class="hero__name" delay={120} data-parallax="0.18" data-field />
+    <p class="hero__intro" data-field data-reveal style="--reveal-delay: 180">
+      I'm in first year of Immersive Software Engineering at UL. Most of what I build starts with me wondering
+      if something is possible, and then wanting to find out.
     </p>
-    <div class="hero__actions" data-reveal style="--reveal-delay: 260">
+    <div class="hero__actions" data-field data-reveal style="--reveal-delay: 260">
       <a class="button" href="/projects/wingravity">Play with WinGravity</a>
       <a class="button button--ghost" href="/about">About me</a>
     </div>
-    <dl class="hero__info" data-tilt="5" data-glare>
+    <dl class="hero__info" data-tilt="5" data-glare data-field="box">
       {
         info.map((item, i) => (
           <div class="hero__fact" data-reveal style={`--reveal-delay: ${300 + i * 80}`}>
@@ -52,16 +52,16 @@ const info = [
   <Marquee items={skills} label="Skills" />
 
   <section class="wrap section" aria-labelledby="work" data-surface="light" data-index="Work">
-    <h2 id="work" class="label section__label" data-reveal>Selected work</h2>
+    <h2 id="work" class="label section__label" data-field data-reveal>Selected work</h2>
     <ProjectList />
   </section>
 
   <section class="wrap section teaser" aria-labelledby="more" data-surface="light" data-index="Off the keyboard">
-    <h2 id="more" class="label section__label" data-reveal>Off the keyboard</h2>
-    <p class="teaser__text" data-reveal data-liquid>
-      When I'm not writing C, I'm playing American football for UL or watching films.
+    <h2 id="more" class="label section__label" data-field data-reveal>Off the keyboard</h2>
+    <p class="teaser__text" data-field data-reveal data-liquid>
+      Away from the laptop I play sport, I've coached underage teams back home, and I watch a lot of films.
     </p>
-    <div class="hero__actions" data-reveal>
+    <div class="hero__actions" data-field data-reveal>
       <a class="button button--ghost" href="/about">More about me</a>
       <a class="button button--ghost" href="/cv">Read my CV</a>
     </div>
@@ -92,6 +92,7 @@ const info = [
 
 <script>
   let dispose: (() => void) | undefined;
+  let disposeField: (() => void) | undefined;
   let scheduled = 0;
 
   const supportsWebGL = () => {
@@ -128,6 +129,13 @@ const info = [
         import('../scripts/heroIntro'),
       ]);
       const facts = JSON.parse(container.dataset.facts ?? '[]');
+      // The fluid/light field (WebGPU) follows once the hero has settled; it checks its own support.
+      scheduled = window.setTimeout(async () => {
+        const { mountField } = await import('../scripts/field');
+        const teardown = await mountField().catch(() => null);
+        if (!container.isConnected) return teardown?.();
+        disposeField = teardown ?? undefined;
+      }, 1200);
       const scene = await mountHero3D(container, facts);
       if (!container.isConnected) return scene.dispose();
       // The static card morphs into the 3D windows rather than the scene just appearing.
@@ -164,6 +172,8 @@ const info = [
     trigger = undefined;
     dispose?.();
     dispose = undefined;
+    disposeField?.();
+    disposeField = undefined;
   });
 </script>
 

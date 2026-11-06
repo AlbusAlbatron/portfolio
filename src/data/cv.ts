@@ -16,8 +16,8 @@ export interface CvEntry {
 
 export const profile = [
   'First-year Immersive Software Engineering student at the University of Limerick.',
-  'Strong interest in C, Java and Python, eager to apply problem-solving skills to real-world software projects.',
-  'Hardworking and reliable, balancing technical studies with practical experience in busy, customer-facing environments.',
+  'Interested in Java, Python and C, and keen to put problem-solving skills to work on real software projects.',
+  'Hardworking and reliable, with part-time experience in busy, customer-facing jobs.',
 ];
 
 export const education: CvEntry[] = [
@@ -90,4 +90,4 @@ export const additional = [
 ];
 
 export const interests =
-  'Coding in my spare time and practising algorithmic problem-solving. I play American football for the University of Limerick and I watch a lot of films.';
+  'Coding in my spare time, practising algorithm problems, playing sport (currently American football with UL) and watching films.';

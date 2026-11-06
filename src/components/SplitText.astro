@@ -36,6 +36,11 @@ const parts = by === 'char' ? [...text] : text.split(/\s+/);
     animation-delay: var(--d);
   }
 
+  /* Arrived via a title morph (morph.ts): the morph is the entrance. */
+  .is-settled .split__part {
+    animation: none;
+  }
+
   @keyframes split-rise {
     from {
       transform: translateY(110%);

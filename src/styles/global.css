@@ -410,6 +410,61 @@ html.is-wiping .split__part {
   animation: none;
 }
 
+/* Home field (src/scripts/field): WebGPU canvas behind the content; html already paints --bg. */
+.field-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+html:has(.field-canvas) body {
+  background: transparent;
+}
+
+/* Title morphs (morph.ts) skip the wipe: quick crossfade, the named title glides between pages. */
+html.is-morphing::view-transition-old(root) {
+  animation: 0.35s var(--ease) both vt-fade-out;
+}
+
+html.is-morphing::view-transition-new(root) {
+  animation: 0.5s var(--ease) 0.1s both vt-fade-in;
+}
+
+html.is-morphing::view-transition-group(*) {
+  animation-duration: 0.65s;
+  animation-timing-function: var(--ease);
+}
+
+/* Titles scale uniformly by height from their left edge instead of stretching to each other's box. */
+html.is-morphing::view-transition-old(*.title),
+html.is-morphing::view-transition-new(*.title) {
+  block-size: 100%;
+  inline-size: auto;
+}
+
+html.is-morphing::view-transition-old(*.title) {
+  animation: 0.25s var(--ease) both vt-fade-out;
+}
+
+html.is-morphing::view-transition-new(*.title) {
+  animation: 0.3s var(--ease) both vt-fade-in;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
 html.has-cursor,
 html.has-cursor * {
   cursor: none !important;
