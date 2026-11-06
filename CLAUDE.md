@@ -20,7 +20,7 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
 - Surfaces: tag each top-level block `data-surface="dark"` or `"light"`; every page starts with a dark header.
   `src/scripts/surface.ts` switches `html[data-surface]` when a block crosses 25% down the viewport.
   Anything that must stay dark on a light page (WinGravity desktop, footer) gets `.theme-dark` and paints its
-  own `background: var(--bg)`. Code blocks use the raw `--dark-*` values.
+  own `background: var(--bg)`. Code blocks use literal dark palette values.
 - Big headings: `<SplitText text="…" by="word|char" />` (staggered rise), optionally `data-parallax="0.12"`.
 - Cursor states: `data-cursor="view"` or `"drag"` on an element; links/buttons get the hover ring automatically.
 - Liquid ripple: `data-liquid` on large display text only (SplitText adds it). `src/scripts/liquid.ts` moves one
@@ -43,8 +43,12 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
   `data-autostart="ms"` on `[data-desktop]` turns gravity on by itself.
 - Share image `public/og.png` (1200×630) and `public/apple-touch-icon.png` are rendered from HTML designs —
   regenerate them if the name, tagline or palette changes. Code highlighting uses Shiki's `css-variables`
-  theme with the `--astro-code-*` palette in `global.css`.
+  theme with the `--astro-code-*` palette, scoped to `.astro-code` in `global.css`. Keep custom properties
+  off `:root` unless every element needs them: they are inherited everywhere and slow full-page restyles.
 - Links prefetch on hover (`prefetch` in `astro.config.mjs`); fonts are preloaded in `Base.astro`.
+- Home hero intro (`src/scripts/heroIntro.ts`): once the 3D scene is ready, each fact pops out of the static
+  card as a lookalike window and flies onto its 3D twin (CSS homography onto `scene.project(i)`), then
+  cross-fades into WebGL. Flyer colours in `global.css` match the lit 3D windows — retune if lighting changes.
 - Quality bar: Lighthouse 97–100 on every page (desktop + mobile), axe clean, CLS 0.
 - `<html>` attributes are replaced on every navigation, so anything that adds classes to it (Lenis,
   `has-cursor`, `js`) re-adds them on `astro:after-swap`.

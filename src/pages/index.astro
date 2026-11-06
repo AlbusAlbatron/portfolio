@@ -123,11 +123,21 @@ const info = [
 
     const mount = async () => {
       if (!container.isConnected) return;
-      const { mountHero3D } = await import('../scripts/hero3d');
+      const [{ mountHero3D }, { playIntro }] = await Promise.all([
+        import('../scripts/hero3d'),
+        import('../scripts/heroIntro'),
+      ]);
       const facts = JSON.parse(container.dataset.facts ?? '[]');
-      const cleanup = await mountHero3D(container, facts);
-      if (container.isConnected) dispose = cleanup;
-      else cleanup();
+      const scene = await mountHero3D(container, facts);
+      if (!container.isConnected) return scene.dispose();
+      // The static card morphs into the 3D windows rather than the scene just appearing.
+      const card = document.querySelector<HTMLElement>('.hero__info');
+      const intro = card ? playIntro(card, container, scene) : null;
+      if (!intro) container.classList.add('is-ready', 'has-text');
+      dispose = () => {
+        intro?.cancel();
+        scene.dispose();
+      };
     };
 
     // Build the scene on the first sign of a visitor (mouse, scroll, keys), not during page load, and never
@@ -187,6 +197,25 @@ const info = [
 
   .hero__scene.is-ready {
     opacity: 1;
+  }
+
+  /* While its facts fly into the 3D scene, the card itself dissolves. */
+  .hero__info {
+    transition:
+      background-color 0.45s var(--ease),
+      border-color 0.45s var(--ease),
+      box-shadow 0.45s var(--ease);
+  }
+
+  .hero__info:global(.is-morphing) {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  .hero__info:global(.is-morphing) .hero__fact + .hero__fact {
+    border-top-color: transparent;
   }
 
   /* Once the facts are drawn on the 3D windows, the card stays only for screen readers. */

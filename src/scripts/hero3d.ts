@@ -76,7 +76,23 @@ function drawFact(canvas: HTMLCanvasElement, fact: Fact) {
   }
 }
 
-export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): Promise<() => void> {
+export interface HeroScene {
+  dispose(): void;
+  /** Screen-space corners (TL, TR, BR, BL) of window i's front face, in client pixels. */
+  project(i: number): [number, number][];
+  /** The text images drawn on each window, for lookalike HTML overlays. */
+  faces: HTMLCanvasElement[];
+}
+
+// Front face of a window in its local space (the body is 2.6 x 1.8, 0.1 deep).
+const FACE: [number, number][] = [
+  [-1.3, 0.9],
+  [1.3, 0.9],
+  [1.3, -0.9],
+  [-1.3, -0.9],
+];
+
+export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): Promise<HeroScene> {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
@@ -304,11 +320,19 @@ export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): P
   else renderer.compile(scene, camera);
   await yieldToBrowser();
   renderer.render(scene, camera);
-  container.classList.add('is-ready');
-  if (factTextures.length) container.classList.add('has-text');
+  const corner = new Vector3();
+  const project = (i: number): [number, number][] => {
+    const w = windows[i].win;
+    w.updateWorldMatrix(true, false);
+    const r = canvas.getBoundingClientRect();
+    return FACE.map(([x, y]) => {
+      corner.set(x, y, 0.05).applyMatrix4(w.matrixWorld).project(camera);
+      return [r.left + ((corner.x + 1) / 2) * r.width, r.top + ((1 - corner.y) / 2) * r.height];
+    });
+  };
   start();
 
-  return () => {
+  const dispose = () => {
     stop();
     clearInterval(clockTimer);
     io.disconnect();
@@ -320,4 +344,6 @@ export async function mountHero3D(container: HTMLElement, facts: Fact[] = []): P
     renderer.forceContextLoss();
     canvas.remove();
   };
+
+  return { dispose, project, faces: factTextures.map((t) => t.canvas) };
 }

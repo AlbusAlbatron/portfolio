@@ -8,35 +8,6 @@
 @property --text-faint { syntax: '<color>'; inherits: true; initial-value: #857a6c; }
 
 :root {
-  --dark-bg: #26201b;
-  --dark-raised: #312a24;
-  --dark-sunken: #1e1915;
-  --dark-line: #463d35;
-  --dark-text: #f7f4ef;
-  --dark-soft: #e4ddd3;
-  --dark-muted: #b1a89c;
-  --dark-faint: #857a6c;
-
-  --light-bg: #f7f4ef;
-  --light-raised: #fdfcf9;
-  --light-sunken: #efeae3;
-  --light-line: #e2dbd1;
-  --light-text: #221d19;
-  --light-soft: #3a332d;
-  --light-muted: #6b6159;
-  --light-faint: #a39a8f;
-
-  --astro-code-foreground: #e4ddd3;
-  --astro-code-token-comment: #a39a8f;
-  --astro-code-token-constant: #e9b98c;
-  --astro-code-token-function: #efd59b;
-  --astro-code-token-keyword: #e5a39a;
-  --astro-code-token-parameter: #e4ddd3;
-  --astro-code-token-punctuation: #b1a89c;
-  --astro-code-token-string: #c6cf96;
-  --astro-code-token-string-expression: #c6cf96;
-  --astro-code-token-link: #e9b98c;
-
   --font-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
@@ -57,28 +28,43 @@
     --text-faint var(--surface-duration) var(--ease);
 }
 
+/* Code colours (Shiki css-variables theme). Scoped to code blocks: every custom property on :root is
+   inherited by every element, which makes full-page style recalcs (e.g. the surface fade) slower. */
+.astro-code {
+  --astro-code-foreground: #e4ddd3;
+  --astro-code-token-comment: #a39a8f;
+  --astro-code-token-constant: #e9b98c;
+  --astro-code-token-function: #efd59b;
+  --astro-code-token-keyword: #e5a39a;
+  --astro-code-token-parameter: #e4ddd3;
+  --astro-code-token-punctuation: #b1a89c;
+  --astro-code-token-string: #c6cf96;
+  --astro-code-token-string-expression: #c6cf96;
+  --astro-code-token-link: #e9b98c;
+}
+
 /* Semantic tokens: dark by default, light when the page scrolls into a light section. */
 :root,
 .theme-dark {
-  --bg: var(--dark-bg);
-  --bg-raised: var(--dark-raised);
-  --bg-sunken: var(--dark-sunken);
-  --line: var(--dark-line);
-  --text: var(--dark-text);
-  --text-soft: var(--dark-soft);
-  --text-muted: var(--dark-muted);
-  --text-faint: var(--dark-faint);
+  --bg: #26201b;
+  --bg-raised: #312a24;
+  --bg-sunken: #1e1915;
+  --line: #463d35;
+  --text: #f7f4ef;
+  --text-soft: #e4ddd3;
+  --text-muted: #b1a89c;
+  --text-faint: #857a6c;
 }
 
 :root[data-surface='light'] {
-  --bg: var(--light-bg);
-  --bg-raised: var(--light-raised);
-  --bg-sunken: var(--light-sunken);
-  --line: var(--light-line);
-  --text: var(--light-text);
-  --text-soft: var(--light-soft);
-  --text-muted: var(--light-muted);
-  --text-faint: var(--light-faint);
+  --bg: #f7f4ef;
+  --bg-raised: #fdfcf9;
+  --bg-sunken: #efeae3;
+  --line: #e2dbd1;
+  --text: #221d19;
+  --text-soft: #3a332d;
+  --text-muted: #6b6159;
+  --text-faint: #a39a8f;
   color-scheme: light;
 }
 
@@ -227,8 +213,8 @@ pre {
 }
 
 .prose pre {
-  background: var(--dark-sunken) !important;
-  border: 1px solid var(--dark-line);
+  background: #1e1915 !important;
+  border: 1px solid #463d35;
   border-radius: 8px;
   padding: 1rem 1.25rem;
   overflow-x: auto;
@@ -358,7 +344,7 @@ body::after {
   pointer-events: none;
   background: radial-gradient(
     circle at var(--gx, 50%) var(--gy, 50%),
-    color-mix(in srgb, var(--dark-text) 16%, transparent),
+    color-mix(in srgb, #f7f4ef 16%, transparent),
     transparent 60%
   );
   opacity: 0;
@@ -367,6 +353,50 @@ body::after {
 
 [data-glare].is-tilting::after {
   opacity: 1;
+}
+
+/* Home hero: lookalike windows that carry the facts card into the 3D scene (src/scripts/heroIntro.ts).
+   Colours match the lit 3D windows as rendered. */
+.hero-flyer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  width: 260px;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #1f150b;
+  box-shadow: 0 30px 50px -25px rgb(0 0 0 / 0.7);
+  transform-origin: 0 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  opacity: 0;
+}
+
+.hero-flyer__bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding-right: 20px;
+  background: #a89a86;
+}
+
+.hero-flyer__bar i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4f4337;
+}
+
+.hero-flyer__text {
+  position: absolute;
+  left: 3.846%;
+  top: 19.44%;
+  width: 92.31%;
+  height: 77.78%;
 }
 
 /* Hold incoming headline animations until the page wipe starts revealing the page. */
