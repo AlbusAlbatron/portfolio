@@ -3,6 +3,9 @@ import Base from '../layouts/Base.astro';
 import ProjectList from '../components/ProjectList.astro';
 import SplitText from '../components/SplitText.astro';
 import Marquee from '../components/Marquee.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { site } from '../data/site';
+import { now } from '../data/now';
 
 const skills = ['Java', 'Python', 'C', 'HTML/CSS', 'Git', 'Linux', 'Algorithms', 'OOP', 'Win32 API'];
 
@@ -12,9 +15,31 @@ const info = [
   { label: 'Learning', value: 'Java, Python and C' },
   { label: 'Off the clock', value: 'Sport and films' },
 ];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: site.name,
+    url: Astro.site?.href,
+    email: `mailto:${site.email}`,
+    jobTitle: 'Software engineering student',
+    affiliation: { '@type': 'CollegeOrUniversity', name: 'University of Limerick' },
+    homeLocation: { '@type': 'Place', name: 'Limerick, Ireland' },
+    sameAs: [site.github, site.linkedin],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'alby.software',
+    url: Astro.site?.href,
+    author: { '@type': 'Person', name: site.name },
+  },
+];
 ---
 
-<Base>
+<Base ogImage="/og/home.png">
+  <JsonLd data={jsonLd} />
   <section class="hero wrap" data-surface="dark" data-index="Intro">
     <div class="hero__scene" data-hero-scene data-facts={JSON.stringify(info)} aria-hidden="true"></div>
     <p class="label" data-reveal data-field>Software engineering student — University of Limerick</p>
@@ -27,6 +52,9 @@ const info = [
       <a class="button" href="/projects/wingravity">Play with WinGravity</a>
       <a class="button button--ghost" href="/about">About me</a>
     </div>
+    <p class="hero__status label" data-field data-reveal style="--reveal-delay: 340">
+      <span class="hero__dot" aria-hidden="true"></span>{site.status} · <a href="/cv">CV</a>
+    </p>
     <dl class="hero__info" data-tilt="5" data-glare data-field="box">
       {
         info.map((item, i) => (
@@ -54,6 +82,20 @@ const info = [
   <section class="wrap section" aria-labelledby="work" data-surface="light" data-index="Work">
     <h2 id="work" class="label section__label" data-field data-reveal>Selected work</h2>
     <ProjectList />
+  </section>
+
+  <section class="wrap section" aria-labelledby="now" data-surface="light" data-index="Now">
+    <h2 id="now" class="label section__label" data-field data-reveal>Now <span class="now__updated">· updated {now.updated}</span></h2>
+    <dl class="now" data-reveal>
+      {
+        now.items.map((item) => (
+          <div class="now__row" data-field>
+            <dt class="label">{item.label}</dt>
+            <dd>{item.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
   </section>
 
   <section class="wrap section teaser" aria-labelledby="more" data-surface="light" data-index="Off the keyboard">
@@ -186,7 +228,8 @@ const info = [
       'label label'
       'name info'
       'intro info'
-      'actions info';
+      'actions info'
+      'status info';
     column-gap: clamp(2rem, 6vw, 5rem);
     padding-block: clamp(4rem, 14vw, 10rem) clamp(3rem, 8vw, 6rem);
   }
@@ -261,6 +304,38 @@ const info = [
     grid-area: actions;
   }
 
+  .hero > .hero__status {
+    grid-area: status;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    margin: 1.75rem 0 0;
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  .hero__status a {
+    color: var(--text);
+  }
+
+  .hero__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--text);
+    animation: pulse 2.4s var(--ease) infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
   .hero__info {
     grid-area: info;
     align-self: center;
@@ -303,7 +378,7 @@ const info = [
 
     .hero {
       grid-template-columns: 1fr;
-      grid-template-areas: 'label' 'name' 'intro' 'actions' 'info';
+      grid-template-areas: 'label' 'name' 'intro' 'actions' 'status' 'info';
     }
 
     .hero__info {
@@ -343,6 +418,38 @@ const info = [
     margin-bottom: 1.5rem;
     font-weight: 400;
     letter-spacing: 0.04em;
+  }
+
+  .now__updated {
+    color: var(--text-muted);
+  }
+
+  .now {
+    display: grid;
+    gap: 0;
+    max-width: 44rem;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .now__row {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .now__row dd {
+    margin: 0;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 40rem) {
+    .now__row {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
   }
 
   .teaser__text {

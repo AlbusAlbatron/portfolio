@@ -71,13 +71,45 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
 - Site-wide details (name, email, links) live in `src/data/site.ts`.
 - Projects are a content collection (`src/content/projects/*.md`, schema in `src/content.config.ts`).
   Normal projects render through `src/pages/projects/[id].astro`; `interactive: true` projects have their
-  own page file instead (e.g. `src/pages/projects/wingravity.astro`).
-- No journal/blog in the nav yet. When added, make it another content collection.
+  own page file instead (`wingravity.astro`, `procedural-animation.astro`, `this-site.astro` = the colophon).
+  `badge` is the pill on the project row ("Playable", "Colophon").
+- Project media: optional `cover`, `gallery[]` and `video {webm|mp4, poster}` frontmatter (`image()` fields,
+  paths relative to the md file). Files live in `src/assets/projects/<id>/`; videos are resolved by a glob in
+  `ProjectLayout.astro`. Nothing renders when the fields are absent. Video autoplays muted only in view and
+  never under reduced motion (a Play button appears instead). Rows with a cover get a floating preview on fine
+  pointers via `hovercards.ts` (`data-hentry` / `data-htrigger` / `data-hcard`), shared with the CV cards.
+- Journal: content collection `src/content/journal/*.md` (`title, date, summary, tags, draft`). Pages
+  `/journal`, `/journal/[slug]`, feed at `/rss.xml` (`@astrojs/rss`). Drafts render in dev only
+  (`src/data/journal.ts`). Prose `h2`s feed the section index.
+- Share images: `src/pages/og/[...slug].png.ts` renders one per page/project/post at build time (satori → sharp,
+  fonts read from the fontsource packages' `.woff` files). Pages pass `ogImage="/og/<slug>.png"` to `Base`;
+  `public/og.png` is the fallback. JSON-LD goes through `JsonLd.astro` (Person + WebSite on home,
+  BreadcrumbList + SoftwareSourceCode on projects, BlogPosting on posts).
+- Command palette (`Palette.astro` + `src/scripts/palette.ts`): ⌘K / Ctrl+K, `?` for the shortcut sheet,
+  `g` then `h/p/j/a/c` chords. Items are built at build time into an inline JSON tag. Programmatic navigation
+  must use `navigate()` from `astro:transitions/client` so the wipe plays. Add new routes to the `labels` map
+  in `PageWipe.astro` or the wipe shows the fallback name.
+- Lights preference (`src/scripts/lights.ts`): `localStorage['lights']` = auto|dark|light. Applied before paint
+  by the inline head script in `Base.astro`, re-applied on `astro:after-swap`, respected by `surface.ts` (a pin
+  skips the scroll observer). `.theme-dark` blocks stay dark either way. Footer button + palette actions set it.
+- Copy buttons: `<button data-copy="text" hidden>`; `src/scripts/copy.ts` un-hides them when the clipboard
+  API exists and announces via `[data-copy-status]`.
+- Print: `@media print` in `global.css` strips the chrome; the CV page has its own print layout and a Print
+  button. `[data-print-hide]` hides anything else.
+- `src/data/site.ts` has `status` (hero + footer line); `src/data/now.ts` feeds the home "Now" block.
 
 ## WinGravity
 `src/scripts/gravity/engine.ts` is a port of `UpdateEnginePhysics` from
 https://github.com/AlbusAlbatron/WinGravity — keep its constants and collision rules matching the C.
-`desktop.ts` is the DOM side (pointer drag = window hooks, transforms = SetWindowPos).
+`desktop.ts` is the DOM side (pointer drag = window hooks, transforms = SetWindowPos). The only addition is
+tilt gravity for phones (`gravity/tilt.ts`): `accel` can point gravity sideways, and the wall/ceiling rules
+mirror the floor rule *only* when it does, so with `accel` at zero the C path is unchanged.
+
+## Procedural animation
+`src/scripts/snake/engine.ts` ports `procedural_snake.c` (github.com/AlbusAlbatron/procedural_animation):
+40 segments, 3% lerp per tick at 600 Hz, radii truncated to integers (the tail collapses to 0 after 13 —
+keep that faithful; the page's sliders are the "fix"). `canvas.ts` is the DOM side: fixed-step accumulator,
+tokens read via `getComputedStyle` each frame so it follows the surface fade, touch follows only while pressed.
 
 ## CV — privacy
 - `src/data/cv.ts` is public. Never add phone numbers or referee contact details.

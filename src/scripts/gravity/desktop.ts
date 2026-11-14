@@ -1,4 +1,5 @@
-import { PhysicsEngine, STEP, type Bounds, type EngineObject } from './engine';
+import { GRAVITY, PhysicsEngine, STEP, type Bounds, type EngineObject } from './engine';
+import { startTilt, supportsTilt } from './tilt';
 
 interface Win {
   el: HTMLElement;
@@ -14,6 +15,7 @@ export function mountDesktop(root: HTMLElement): () => void {
   const reset = root.querySelector<HTMLButtonElement>('[data-reset]')!;
   const readout = root.querySelector<HTMLElement>('[data-readout]');
   const clock = root.querySelector<HTMLElement>('[data-clock]');
+  const tiltButton = root.querySelector<HTMLButtonElement>('[data-tilt-toggle]');
 
   const engine = new PhysicsEngine();
   engine.gravityOn = false;
@@ -25,6 +27,7 @@ export function mountDesktop(root: HTMLElement): () => void {
   let acc = 0;
   let visible = true;
   let focused: Win | null = null;
+  let stopTilt: (() => void) | null = null;
 
   const measure = () => {
     bounds = { left: 0, top: 0, right: screen.clientWidth, bottom: screen.clientHeight };
@@ -147,13 +150,41 @@ export function mountDesktop(root: HTMLElement): () => void {
     render();
   };
 
+  // Tilt (phones): the gravity vector follows the device. Magnitude stays GRAVITY when held upright.
+  const applyTilt = (gx: number, gy: number) => {
+    for (const w of wins) {
+      w.obj.accel.x = GRAVITY * gx;
+      w.obj.accel.y = GRAVITY * (gy - 1);
+    }
+  };
+
+  const setTilt = async (on: boolean) => {
+    if (!tiltButton) return;
+    if (on) {
+      stopTilt = await startTilt(applyTilt);
+      if (!stopTilt) {
+        tiltButton.textContent = 'Tilt blocked';
+        tiltButton.disabled = true;
+        return;
+      }
+      setGravity(true);
+    } else {
+      stopTilt?.();
+      stopTilt = null;
+    }
+    tiltButton.setAttribute('aria-pressed', String(on));
+    tiltButton.textContent = on ? 'Tilt: on' : 'Use tilt';
+  };
+
   const onReset = () => {
     setGravity(false);
+    void setTilt(false);
     measure();
     for (const w of wins) {
       w.home = homeFor(w.el);
       w.obj.pos = { ...w.home };
       w.obj.vel = { x: 0, y: 0 };
+      w.obj.accel = { x: 0, y: 0 };
     }
     render();
   };
@@ -185,6 +216,11 @@ export function mountDesktop(root: HTMLElement): () => void {
   tickClock();
   const clockTimer = window.setInterval(tickClock, 30_000);
 
+  if (tiltButton && supportsTilt()) {
+    tiltButton.hidden = false;
+    tiltButton.addEventListener('click', () => void setTilt(!stopTilt));
+  }
+
   screen.addEventListener('pointerdown', onPointerDown);
   toggle.addEventListener('click', () => setGravity(!engine.gravityOn));
   reset.addEventListener('click', onReset);
@@ -192,6 +228,7 @@ export function mountDesktop(root: HTMLElement): () => void {
 
   return () => {
     clearTimeout(autostart);
+    stopTilt?.();
     stop();
     io.disconnect();
     ro.disconnect();

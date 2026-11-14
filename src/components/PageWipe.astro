@@ -3,12 +3,15 @@ import { getCollection } from 'astro:content';
 import { site } from '../data/site';
 
 const projects = await getCollection('projects');
+const posts = await getCollection('journal');
 const labels: Record<string, string> = {
   '/': site.name,
   '/projects': 'Projects',
   '/about': 'About',
   '/cv': 'CV',
+  '/journal': 'Journal',
   ...Object.fromEntries(projects.map((p) => [`/projects/${p.id}`, p.data.title])),
+  ...Object.fromEntries(posts.map((p) => [`/journal/${p.id}`, p.data.title])),
 };
 ---
 

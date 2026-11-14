@@ -5,6 +5,18 @@ year: 2026
 tech: [C, Win32 API, Windows Services]
 repo: https://github.com/AlbusAlbatron/Attention-Service
 order: 2
+# Drop screenshots into src/assets/projects/attention-service/ and uncomment (edit alt text to match):
+# cover: ../../assets/projects/attention-service/cover.png
+# gallery:
+#   - src: ../../assets/projects/attention-service/gui.png
+#     alt: The Attention Service window with a list of blocked sites and a timer set to two hours
+#     caption: The GUI — pick what to block and for how long
+#   - src: ../../assets/projects/attention-service/hosts.png
+#     alt: The Windows hosts file with the marked block of Attention Service entries
+#     caption: The hosts file while a block is running
+#   - src: ../../assets/projects/attention-service/services.png
+#     alt: Attention Service listed as Running in the Windows Services console
+#     caption: Running as a Windows Service
 ---
 
 ## The problem

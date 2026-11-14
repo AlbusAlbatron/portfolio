@@ -484,3 +484,75 @@ html.has-cursor * {
     transform: none;
   }
 }
+
+/* Print (mainly the CV): one column, no chrome, URLs after external links. */
+@media print {
+  .nav,
+  .footer,
+  .cursor,
+  .wipe,
+  .sindex,
+  .palette,
+  .skip,
+  .field-canvas,
+  [data-print-hide],
+  body::after {
+    display: none !important;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+
+  html,
+  body,
+  :root[data-surface='light'] {
+    --bg: #fff;
+    --bg-raised: #fff;
+    --bg-sunken: #fff;
+    --line: #bbb;
+    --text: #000;
+    --text-soft: #222;
+    --text-muted: #444;
+    --text-faint: #777;
+    background: #fff !important;
+    color: #000;
+  }
+
+  .js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .split__part {
+    animation: none !important;
+  }
+
+  [data-parallax] {
+    translate: none !important;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-color: #999;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: #444;
+    word-break: break-all;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  section,
+  li {
+    break-inside: avoid;
+  }
+}

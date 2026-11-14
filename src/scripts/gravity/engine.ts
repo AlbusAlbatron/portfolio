@@ -1,5 +1,9 @@
 // TypeScript port of UpdateEnginePhysics from WinGravity's gravity.c.
 // Constants, collision rules and the throw calculation match the original.
+//
+// One addition for the phone demo: `accel` can point gravity sideways (tilt.ts). The C never sets accel.x,
+// so with accel at zero every branch below is the original's; the extra "wall as floor" rules only run
+// when gravity actually has a sideways or upward component.
 
 export const GRAVITY = 444;
 export const FRICTION = 5;
@@ -28,6 +32,21 @@ export interface EngineObject {
   width: number;
   height: number;
   isGrabbed: boolean;
+}
+
+/** The floor rule from the C, applied to whichever edge gravity is pressing the object against. */
+function restOn(o: EngineObject, axis: 'x' | 'y') {
+  const other = axis === 'x' ? 'y' : 'x';
+  if (Math.abs(o.vel[axis]) > BOUNCE_THRESHOLD_GROUND) o.vel[axis] *= -BOUNCE;
+  else o.vel[axis] = 0;
+  // Apply friction along the surface.
+  if (Math.abs(o.vel[other]) <= FRICTION) o.vel[other] = 0;
+  else o.vel[other] -= Math.sign(o.vel[other]) * FRICTION;
+}
+
+function bounceOff(o: EngineObject, axis: 'x' | 'y') {
+  if (Math.abs(o.vel[axis]) > BOUNCE_THRESHOLD) o.vel[axis] *= -BOUNCE;
+  else o.vel[axis] = 0;
 }
 
 export class PhysicsEngine {
@@ -75,7 +94,10 @@ export class PhysicsEngine {
         continue;
       }
 
-      o.vel.y += (o.accel.y + GRAVITY) * dt;
+      const gy = o.accel.y + GRAVITY;
+      const gx = o.accel.x;
+      o.vel.y += gy * dt;
+      o.vel.x += gx * dt;
 
       const bottom = o.pos.y + o.height;
       const right = o.pos.x + o.width;
@@ -91,20 +113,18 @@ export class PhysicsEngine {
         else o.vel.x -= Math.sign(o.vel.x) * FRICTION;
       } else if (top <= bounds.top) {
         o.pos.y = bounds.top;
-        if (o.vel.y < 0) {
-          if (Math.abs(o.vel.y) > BOUNCE_THRESHOLD) o.vel.y *= -BOUNCE;
-          else o.vel.y = 0;
-        }
+        if (gy < 0) restOn(o, 'y'); // tilt only: gravity points up, the ceiling is the floor
+        else if (o.vel.y < 0) bounceOff(o, 'y');
       }
 
       if (right >= bounds.right) {
         o.pos.x = bounds.right - o.width;
-        if (Math.abs(o.vel.x) > BOUNCE_THRESHOLD) o.vel.x *= -BOUNCE;
-        else o.vel.x = 0;
+        if (gx > 0) restOn(o, 'x'); // tilt only
+        else bounceOff(o, 'x');
       } else if (left <= bounds.left) {
         o.pos.x = bounds.left;
-        if (Math.abs(o.vel.x) > BOUNCE_THRESHOLD) o.vel.x *= -BOUNCE;
-        else o.vel.x = 0;
+        if (gx < 0) restOn(o, 'x'); // tilt only
+        else bounceOff(o, 'x');
       }
 
       o.pos.y += o.vel.y * dt;

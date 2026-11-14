@@ -4,15 +4,25 @@ import { site } from '../data/site';
 
 <footer class="footer theme-dark">
   <div class="wrap footer__inner">
-    <p class="footer__line">
-      Say hello — <a href={`mailto:${site.email}`}>{site.email}</a>
-    </p>
+    <div class="footer__say">
+      <p class="footer__line">
+        Say hello — <a href={`mailto:${site.email}`}>{site.email}</a>
+        <button type="button" class="footer__copy label" data-copy={site.email} hidden>Copy</button>
+      </p>
+      <span class="sr-only" aria-live="polite" data-copy-status></span>
+      <p class="footer__status label">{site.status}</p>
+    </div>
     <ul class="footer__links">
       <li><a href={site.github} rel="me">GitHub</a></li>
       <li><a href={site.linkedin} rel="me">LinkedIn</a></li>
       <li><a href="/cv">CV</a></li>
+      <li><a href="/projects/this-site">Colophon</a></li>
+      <li><a href="/rss.xml">RSS</a></li>
     </ul>
     <p class="footer__meta label">© {new Date().getFullYear()} {site.name} · Limerick, Ireland</p>
+    <button type="button" class="footer__lights label" data-lights-cycle aria-label="Lights: auto" hidden>
+      Lights: <span data-lights-value>auto</span>
+    </button>
   </div>
 </footer>
 
@@ -20,6 +30,11 @@ import { site } from '../data/site';
   .footer {
     margin-top: clamp(5rem, 12vw, 9rem);
     background: var(--bg);
+  }
+
+  /* With lights pinned dark the page is the same colour as the footer: keep its edge. */
+  :global(html[data-lights='dark']) .footer {
+    border-top: 1px solid var(--line);
   }
 
   .footer__inner {
@@ -35,8 +50,39 @@ import { site } from '../data/site';
     letter-spacing: -0.02em;
   }
 
+  .footer__copy,
+  .footer__lights {
+    padding: 0.2em 0.7em;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      color 0.2s var(--ease),
+      border-color 0.2s var(--ease);
+  }
+
+  .footer__copy {
+    margin-left: 0.6em;
+    vertical-align: middle;
+    min-width: 4.5em;
+  }
+
+  .footer__copy:hover,
+  .footer__lights:hover,
+  .footer__copy:global(.is-copied) {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .footer__status {
+    margin: 0.75rem 0 0;
+  }
+
   .footer__links {
     display: flex;
+    flex-wrap: wrap;
     gap: 1.5rem;
     margin: 0;
     padding: 0;
@@ -45,14 +91,22 @@ import { site } from '../data/site';
   }
 
   .footer__meta {
-    grid-column: 1 / -1;
     margin: 0;
+    align-self: center;
     color: var(--text-muted);
+  }
+
+  .footer__lights {
+    justify-self: end;
   }
 
   @media (max-width: 40rem) {
     .footer__inner {
       grid-template-columns: 1fr;
+    }
+
+    .footer__lights {
+      justify-self: start;
     }
   }
 </style>

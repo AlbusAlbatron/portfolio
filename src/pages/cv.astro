@@ -16,7 +16,11 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
 ];
 ---
 
-<Base title="CV" description="CV of Alby McNamara — first-year Immersive Software Engineering student at the University of Limerick.">
+<Base
+  title="CV"
+  description="CV of Alby McNamara — first-year Immersive Software Engineering student at the University of Limerick."
+  ogImage="/og/cv.png"
+>
   <header class="wrap cvhead" data-surface="dark">
     <p class="label" data-reveal>Curriculum vitae</p>
     <SplitText text={site.name} delay={60} data-parallax="0.12" />
@@ -27,13 +31,16 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
       <span aria-hidden="true">·</span>
       <a href={site.github}>GitHub</a>
     </p>
-    {
-      hasPdf && (
-        <a class="button" href="/cv.pdf" download="Alby-McNamara-CV.pdf" data-reveal style="--reveal-delay: 180">
-          Download PDF ↓
-        </a>
-      )
-    }
+    <div class="cvhead__actions" data-reveal style="--reveal-delay: 180" data-print-hide>
+      {
+        hasPdf && (
+          <a class="button" href="/cv.pdf" download="Alby-McNamara-CV.pdf">
+            Download PDF ↓
+          </a>
+        )
+      }
+      <button type="button" class="button button--ghost" data-print hidden>Print</button>
+    </div>
   </header>
 
   <div class="wrap cv" data-surface="light">
@@ -133,6 +140,11 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
   document.addEventListener('astro:page-load', () => {
     unmount?.();
     unmount = document.querySelector('[data-hentry]') ? mountHoverCards() : undefined;
+    const print = document.querySelector<HTMLButtonElement>('[data-print]');
+    if (print) {
+      print.hidden = false;
+      print.addEventListener('click', () => window.print());
+    }
   });
 
   document.addEventListener('astro:before-swap', () => {
@@ -152,6 +164,12 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
   h1 {
     font-size: clamp(2.75rem, 9vw, 6.5rem);
     letter-spacing: -0.055em;
+  }
+
+  .cvhead__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .cvhead__contact {
@@ -313,6 +331,27 @@ const sections: { id: string; title: string; entries: CvEntry[] }[] = [
 
   .pairs dd {
     margin: 0;
+  }
+
+  @media print {
+    .cvhead {
+      padding-block: 0 1.5rem;
+    }
+
+    .row {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      padding-block: 1rem;
+    }
+
+    .xp__card,
+    .xp__head--interactive .xp__org {
+      text-decoration: none;
+    }
+
+    .xp__card {
+      display: none !important;
+    }
   }
 
   @media (max-width: 40rem) {

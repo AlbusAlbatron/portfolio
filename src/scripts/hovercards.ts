@@ -57,7 +57,7 @@ export function mountHoverCards(root: ParentNode = document): () => void {
   };
 
   for (const entry of entries) {
-    const trigger = entry.querySelector<HTMLButtonElement>('[data-htrigger]')!;
+    const trigger = entry.querySelector<HTMLElement>('[data-htrigger]')!;
 
     const onEnter = (e: PointerEvent) => {
       if (!finePointer.matches || e.pointerType !== 'mouse') return;
@@ -79,7 +79,8 @@ export function mountHoverCards(root: ParentNode = document): () => void {
     const onBlur = () => hide(entry);
 
     const onClick = () => {
-      if (finePointer.matches) return;
+      // Tap-to-expand is for buttons (CV entries); links (project rows) just navigate.
+      if (finePointer.matches || !(trigger instanceof HTMLButtonElement)) return;
       const open = trigger.getAttribute('aria-expanded') === 'true';
       for (const other of entries) {
         if (other !== entry) other.querySelector('[data-htrigger]')?.setAttribute('aria-expanded', 'false');

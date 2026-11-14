@@ -4,6 +4,7 @@ import { site } from '../data/site';
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const links = [
   { href: '/projects', label: 'Projects' },
+  { href: '/journal', label: 'Journal' },
   { href: '/about', label: 'About' },
 ];
 const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
@@ -25,6 +26,11 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
         }
         <li>
           <a href="/cv" class="button nav__cv" aria-current={isActive('/cv') ? 'page' : undefined}>CV</a>
+        </li>
+        <li class="nav__palette-item">
+          <button type="button" class="nav__palette label" data-palette-open aria-keyshortcuts="Meta+K Control+K" hidden>
+            <span data-palette-key>⌘K</span><span class="sr-only"> command palette</span>
+          </button>
         </li>
       </ul>
     </nav>
@@ -115,6 +121,29 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
 
   .nav__cv {
     padding: 0.35em 1em;
+  }
+
+  .nav__palette {
+    padding: 0.3em 0.6em;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      color 0.2s var(--ease),
+      border-color 0.2s var(--ease);
+  }
+
+  .nav__palette:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  @media (max-width: 40rem) {
+    .nav__palette-item {
+      display: none;
+    }
   }
 
   .nav__cv[aria-current='page'] {

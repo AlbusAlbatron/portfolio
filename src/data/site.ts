@@ -3,7 +3,10 @@ export const site = {
   shortName: 'Alby',
   description:
     'Alby McNamara is a first-year Immersive Software Engineering student at the University of Limerick.',
+  /** One-line availability note shown in the hero and footer. */
+  status: 'Open to internships and side projects',
   email: 'albymcn@gmail.com',
   github: 'https://github.com/AlbusAlbatron',
   linkedin: 'https://www.linkedin.com/in/alby-mcnamara',
+  repo: 'https://github.com/AlbusAlbatron/portfolio',
 };

@@ -4,7 +4,11 @@ import ProjectList from '../../components/ProjectList.astro';
 import SplitText from '../../components/SplitText.astro';
 ---
 
-<Base title="Projects" description="Projects by Alby McNamara, a software engineering student at the University of Limerick.">
+<Base
+  title="Projects"
+  description="Projects by Alby McNamara, a software engineering student at the University of Limerick."
+  ogImage="/og/projects.png"
+>
   <section class="wrap head" data-surface="dark">
     <p class="label" data-reveal>Projects</p>
     <SplitText text="Things I've built" delay={80} data-parallax="0.12" />
