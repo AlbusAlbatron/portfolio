@@ -1,41 +1,35 @@
 ---
 import Base from '../../layouts/Base.astro';
-import ProjectList from '../../components/ProjectList.astro';
-import SplitText from '../../components/SplitText.astro';
+import Typed from '../../components/Typed.astro';
+import Work from '../../components/Work.astro';
 ---
 
-<Base
-  title="Projects"
-  description="Projects by Alby McNamara, a software engineering student at the University of Limerick."
-  ogImage="/og/projects.png"
->
-  <section class="wrap head" data-surface="dark">
-    <p class="label" data-reveal>Projects</p>
-    <SplitText text="Things I've built" delay={80} data-parallax="0.12" />
-    <p class="head__intro" data-reveal style="--reveal-delay: 160">
-      What I've built so far. Each one started with a question I couldn't stop thinking about.
-    </p>
-  </section>
-  <section class="wrap" data-surface="light">
-    <ProjectList />
-  </section>
+<Base title="Work" description="Projects by Alby McNamara, a software engineering student at the University of Limerick.">
+  <div class="page">
+    <header class="head">
+      <h1 class="title dust-title outdent" data-dust>Work</h1>
+      <Typed
+        class="lede head__lede indent-2"
+        text="Projects I've built outside of class. Each one has a short write-up on how it works and what I learned."
+      />
+    </header>
+    <div class="section work">
+      <Work heading="Projects" />
+    </div>
+  </div>
 </Base>
 
 <style>
   .head {
-    padding-block: clamp(3rem, 10vw, 7rem) clamp(2rem, 6vw, 4rem);
+    padding-top: clamp(3rem, 9vw, 7rem);
   }
 
-  h1 {
-    margin-top: 0.4em;
-    font-size: clamp(2.75rem, 9vw, 6rem);
-    letter-spacing: -0.05em;
-  }
-
-  .head__intro {
-    max-width: 34rem;
+  .head :global(.head__lede) {
+    max-width: 30ch;
     margin-top: 1.25rem;
-    font-size: 1.15rem;
-    color: var(--text-muted);
+  }
+
+  .work {
+    margin-top: clamp(3rem, 8vw, 5rem);
   }
 </style>

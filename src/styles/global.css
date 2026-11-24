@@ -1,76 +1,39 @@
-@property --bg { syntax: '<color>'; inherits: true; initial-value: #26201b; }
-@property --bg-raised { syntax: '<color>'; inherits: true; initial-value: #312a24; }
-@property --bg-sunken { syntax: '<color>'; inherits: true; initial-value: #1e1915; }
-@property --line { syntax: '<color>'; inherits: true; initial-value: #463d35; }
-@property --text { syntax: '<color>'; inherits: true; initial-value: #f7f4ef; }
-@property --text-soft { syntax: '<color>'; inherits: true; initial-value: #e4ddd3; }
-@property --text-muted { syntax: '<color>'; inherits: true; initial-value: #b1a89c; }
-@property --text-faint { syntax: '<color>'; inherits: true; initial-value: #857a6c; }
+/* Big Shoulders' package only exposes its CSS under the package root, so it is imported here rather than from TS. */
+@import '@fontsource-variable/big-shoulders-display';
 
+/*
+  Stark and brutalist: a deliberate mix of faces, components pushed off-grid, soft raised tiles for drawings.
+  Black and grey only, no accent colour.
+  --title     Instrument Serif: page and project titles (narrow, high-contrast serif, capitals)
+  --condensed Big Shoulders Display: project card/list titles (tall condensed, black)
+  --heavy     Anton: the footer name (ultra-thick condensed)
+  --brut      Tanker (Fontshare, fetched at build): section headings (heavy, angled cuts)
+  --serif     Newsreader (optical sizes): statements and ledes, a sturdy, legible newspaper serif
+  --sans      Archivo (variable weight + width): body text and the stretchy nav
+  --mono      IBM Plex Mono: labels (uppercase), data, code
+  --pixel     Silkscreen: small numbers, counts, the clock
+*/
 :root {
-  --font-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --bg: #f3f3f0;
+  --surface: #fbfbf9;
+  --ink: #0e0e0e;
+  --muted: #64645e;
+  --hair: #d3d3cc;
 
-  --gutter: clamp(1rem, 4vw, 3rem);
-  --max: 72rem;
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --surface-duration: 0.5s;
+  --title: 'Instrument Serif', 'Times New Roman', serif;
+  --condensed: 'Big Shoulders Display Variable', 'Anton', 'Archivo Variable', sans-serif;
+  --heavy: 'Anton', 'Big Shoulders Display Variable', 'Archivo Variable', sans-serif;
+  --brut: 'Tanker', 'Anton', 'Archivo Variable', sans-serif;
+  --sans: 'Archivo Variable', 'Helvetica Neue', Arial, sans-serif;
+  --serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --pixel: 'Silkscreen', var(--mono);
 
-  color-scheme: dark;
-  transition:
-    --bg var(--surface-duration) var(--ease),
-    --bg-raised var(--surface-duration) var(--ease),
-    --bg-sunken var(--surface-duration) var(--ease),
-    --line var(--surface-duration) var(--ease),
-    --text var(--surface-duration) var(--ease),
-    --text-soft var(--surface-duration) var(--ease),
-    --text-muted var(--surface-duration) var(--ease),
-    --text-faint var(--surface-duration) var(--ease);
-}
-
-/* Code colours (Shiki css-variables theme). Scoped to code blocks: every custom property on :root is
-   inherited by every element, which makes full-page style recalcs (e.g. the surface fade) slower. */
-.astro-code {
-  --astro-code-foreground: #e4ddd3;
-  --astro-code-token-comment: #a39a8f;
-  --astro-code-token-constant: #e9b98c;
-  --astro-code-token-function: #efd59b;
-  --astro-code-token-keyword: #e5a39a;
-  --astro-code-token-parameter: #e4ddd3;
-  --astro-code-token-punctuation: #b1a89c;
-  --astro-code-token-string: #c6cf96;
-  --astro-code-token-string-expression: #c6cf96;
-  --astro-code-token-link: #e9b98c;
-}
-
-/* Semantic tokens: dark by default, light when the page scrolls into a light section. */
-:root,
-.theme-dark {
-  --bg: #26201b;
-  --bg-raised: #312a24;
-  --bg-sunken: #1e1915;
-  --line: #463d35;
-  --text: #f7f4ef;
-  --text-soft: #e4ddd3;
-  --text-muted: #b1a89c;
-  --text-faint: #857a6c;
-}
-
-:root[data-surface='light'] {
-  --bg: #f7f4ef;
-  --bg-raised: #fdfcf9;
-  --bg-sunken: #efeae3;
-  --line: #e2dbd1;
-  --text: #221d19;
-  --text-soft: #3a332d;
-  --text-muted: #6b6159;
-  --text-faint: #a39a8f;
-  color-scheme: light;
-}
-
-.theme-dark {
-  color: var(--text);
-  color-scheme: dark;
+  --pad: clamp(0.9rem, 2.2vw, 1.75rem);
+  --gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  --section: clamp(5rem, 12vw, 10rem);
+  --chrome: 2.75rem;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
 }
 
 *,
@@ -81,30 +44,27 @@
 
 html {
   background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 100%;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--chrome) + 1rem);
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
   background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
-main {
-  flex: 1;
+::selection {
+  background: var(--ink);
+  color: var(--bg);
 }
 
-img,
-video,
-svg {
+img {
   display: block;
   max-width: 100%;
   height: auto;
@@ -114,48 +74,104 @@ a {
   color: inherit;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
-  text-decoration-color: var(--text-faint);
-  transition: text-decoration-color 0.2s var(--ease);
-}
-
-a:hover {
-  text-decoration-color: var(--text);
 }
 
 :focus-visible {
-  outline: 1px solid var(--text);
+  outline: 1.5px solid var(--ink);
   outline-offset: 3px;
-}
-
-::selection {
-  background: var(--text);
-  color: var(--bg);
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+p,
+figure {
   margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Type */
+
+.statement {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-weight: 560;
+  font-size: clamp(1.9rem, 4.4vw, 4.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* Titles: a narrow, high-contrast serif in capitals, very large. */
+.title {
+  font-family: var(--title);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: clamp(4.25rem, 15vw, 14rem);
+  line-height: 0.82;
+}
+
+/* Project names: tall condensed black capitals. */
+.display {
+  font-family: var(--condensed);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.lede {
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-weight: 450;
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  line-height: 1.45;
 }
 
-p {
-  margin: 0 0 1em;
+/* Labels: mono capitals, tracked out. */
+.label,
+.bar__label,
+.spec dt {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-code,
-pre {
-  font-family: var(--font-mono);
-  font-size: 0.85em;
+/* Pixel numerals for small counts and indexes. */
+.pixel,
+.bar__label .count {
+  font-family: var(--pixel);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
-.wrap {
-  width: 100%;
-  max-width: var(--max);
-  margin-inline: auto;
-  padding-inline: var(--gutter);
+.small {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.muted {
+  color: var(--muted);
 }
 
 .sr-only {
@@ -167,392 +183,419 @@ pre {
   white-space: nowrap;
 }
 
-.label {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+/* Layout */
+
+.page {
+  padding-inline: var(--pad);
 }
 
-.prose {
-  max-width: 40rem;
-  font-size: 1.0625rem;
-  color: var(--text);
+main {
+  padding-bottom: var(--section);
 }
 
-.prose h2 {
-  font-size: 1.5rem;
-  margin: 2.5em 0 0.75em;
+.section {
+  margin-top: var(--section);
 }
 
-.prose h3 {
-  font-size: 1.15rem;
-  margin: 2em 0 0.5em;
+/* A small header row above every block: label left, extras right, hairline below. */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding-bottom: 0.9rem;
 }
 
-.prose p,
-.prose li {
-  color: var(--text-soft);
+.bar__label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75em;
 }
 
-.prose ul {
-  padding-left: 1.2em;
+/* Section headings: heavy, angle-cut capitals. */
+.bar__label > span:first-child {
+  font-family: var(--brut);
+  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
 }
 
-.prose li + li {
-  margin-top: 0.4em;
+.bar__label .count {
+  color: var(--muted);
 }
 
-.prose :not(pre) > code {
-  overflow-wrap: anywhere;
-  background: var(--bg-raised);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 0.1em 0.35em;
+/* Spec strip: label over value, in columns. */
+.spec {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0 var(--gap);
+  margin: 0;
 }
 
-.prose pre {
-  background: #1e1915 !important;
-  border: 1px solid #463d35;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  overflow-x: auto;
-  line-height: 1.5;
+.spec div {
+  padding-block: 0.5rem;
 }
 
-.button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.55em 1.1em;
-  border: 1px solid var(--text);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 0.9rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    background-color 0.25s var(--ease),
-    color 0.25s var(--ease);
+.spec dt {
+  color: var(--muted);
 }
 
-.button:hover {
-  background: var(--text);
+.spec dd {
+  margin: 0.15rem 0 0;
+}
+
+.skip {
+  position: fixed;
+  left: var(--pad);
+  top: -3rem;
+  z-index: 100;
+  padding: 0.35rem 0.7rem;
+  background: var(--ink);
   color: var(--bg);
 }
 
-.button--ghost {
-  border-color: var(--line);
+.skip:focus {
+  top: 0.5rem;
 }
 
-.button--ghost:hover {
-  border-color: var(--text);
-}
+/* Tile: a soft, slightly raised surface for drawings and images. */
 
-/* Scroll reveal: only hidden once JS has confirmed it can reveal them. */
-.js [data-reveal] {
-  opacity: 0;
-  transform: translateY(1.25rem);
+.tile {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  position: relative;
+  display: block;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1px rgb(20 20 15 / 0.06),
+    0 1px 1px rgb(20 20 15 / 0.03),
+    0 6px 14px -6px rgb(20 20 15 / 0.08),
+    0 24px 44px -20px rgb(20 20 15 / 0.16);
+  transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
   transition:
-    opacity 0.9s var(--ease),
-    transform 0.9s var(--ease);
-  transition-delay: calc(var(--reveal-delay, 0) * 1ms);
+    transform 0.45s var(--ease),
+    translate 0.45s var(--ease),
+    box-shadow 0.45s var(--ease);
 }
 
-.js [data-reveal].is-visible {
+/* Light catching the top edge. */
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.85);
+  pointer-events: none;
+}
+
+/* Pointer-following light across the surface. */
+.tile__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--px, 50%) var(--py, 0%), rgb(255 255 255 / 0.5), transparent 45%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+  mix-blend-mode: soft-light;
+}
+
+a:hover > .tile,
+a:focus-visible > .tile {
+  translate: 0 -4px;
+  box-shadow:
+    0 0 0 1px rgb(20 20 15 / 0.07),
+    0 2px 2px rgb(20 20 15 / 0.04),
+    0 12px 22px -8px rgb(20 20 15 / 0.12),
+    0 40px 64px -24px rgb(20 20 15 / 0.28);
+}
+
+a:hover > .tile .tile__sheen {
   opacity: 1;
-  transform: none;
 }
 
-/* Film grain: plain alpha noise, no blend modes, so the compositor never re-blends the page. */
+/* Text links with a quiet arrow */
+.link {
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 1px;
+  transition: background-size 0.35s var(--ease);
+}
+
+.link:hover,
+.link:focus-visible {
+  background-size: 100% 1px;
+}
+
+/* View toggle: text buttons, the active one in ink. */
+.toggle {
+  display: inline-flex;
+  gap: 0.9rem;
+}
+
+.toggle button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toggle button:hover {
+  color: var(--ink);
+}
+
+.toggle button[aria-pressed='true'] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+/* Reading text */
+
+.prose {
+  max-width: 38rem;
+  font-size: 1.0625rem;
+  line-height: 1.68;
+  text-wrap: pretty;
+}
+
+.prose p + p,
+.prose p + ul,
+.prose ul + p,
+.prose h3 + p {
+  margin-top: 1rem;
+}
+
+.prose h2 {
+  margin: 4rem 0 1.1rem;
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.prose h3 {
+  margin: 2rem 0 0.35rem;
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.prose li + li {
+  margin-top: 0.5rem;
+}
+
+.prose strong {
+  font-weight: 600;
+}
+
+.prose a {
+  text-decoration-color: var(--hair);
+}
+
+.prose a:hover {
+  text-decoration-color: currentColor;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.84em;
+  font-variant-ligatures: none;
+}
+
+:not(pre) > code {
+  padding: 0.05em 0.25em;
+  background: #e5e5df;
+}
+
+pre {
+  margin: 2rem 0;
+  padding: 1.1rem 1.25rem;
+  background: #0e0e0e !important;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+/*
+  Brutalist offsets: components pushed deliberately off the grid, each by a different amount.
+  Desktop only; on narrower screens everything lines up so nothing collides or scrolls sideways.
+*/
+@media (min-width: 64rem) {
+  .indent-1 {
+    margin-left: 8.333%;
+  }
+
+  .indent-2 {
+    margin-left: 16.667%;
+  }
+
+  .indent-4 {
+    margin-left: 33.333%;
+  }
+
+  .indent-6 {
+    margin-left: 50%;
+  }
+
+  /* Hangs into the page margin. */
+  .outdent {
+    margin-left: calc(var(--pad) * -0.6);
+  }
+
+  .drop-1 {
+    translate: 0 2rem;
+  }
+
+  .drop-2 {
+    translate: 0 5rem;
+  }
+
+  .lift-1 {
+    translate: 0 -1.5rem;
+  }
+}
+
+/*
+  Grain: a static, barely-visible noise layer over everything. Static (no animation) and no blend mode, because
+  blend modes on full-screen fixed layers made scrolling janky.
+*/
 body::after {
   content: '';
   position: fixed;
-  inset: -40px;
-  z-index: 90;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.6 -0.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.1;
-  will-change: transform;
-  contain: strict;
-  animation: grain 1s steps(8) infinite;
-}
-
-:root[data-surface='light'] body::after {
-  opacity: 0.12;
-}
-
-@keyframes grain {
-  0% { transform: translate(0, 0); }
-  12% { transform: translate(-14px, 9px); }
-  25% { transform: translate(10px, -18px); }
-  37% { transform: translate(-19px, -4px); }
-  50% { transform: translate(13px, 15px); }
-  62% { transform: translate(-6px, 19px); }
-  75% { transform: translate(18px, -9px); }
-  87% { transform: translate(-9px, -14px); }
-  100% { transform: translate(0, 0); }
-}
-
-[data-parallax] {
-  will-change: translate;
-}
-
-/* Liquid display text (src/scripts/liquid.ts). */
-[data-liquid] {
-  position: relative;
-}
-
-.is-liquid,
-.is-liquid * {
-  color: transparent !important;
-}
-
-.liquid-canvas {
-  position: absolute;
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* 3D tilt + glare (src/scripts/tilt.ts). Parents supply the perspective. */
-:has(> [data-tilt]) {
-  perspective: 1000px;
-}
-
-[data-tilt] {
-  transition: rotate 0.6s var(--ease);
-}
-
-[data-tilt].is-tilting {
-  transition: rotate 0.15s linear;
-}
-
-[data-glare] {
-  overflow: hidden;
-  isolation: isolate;
-}
-
-[data-glare]::after {
-  content: '';
-  position: absolute;
   inset: 0;
-  z-index: 2;
-  border-radius: inherit;
+  z-index: 80;
   pointer-events: none;
-  background: radial-gradient(
-    circle at var(--gx, 50%) var(--gy, 50%),
-    color-mix(in srgb, #f7f4ef 16%, transparent),
-    transparent 60%
-  );
-  opacity: 0;
-  transition: opacity 0.4s var(--ease);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: 0.045;
 }
 
-[data-glare].is-tilting::after {
-  opacity: 1;
+@font-face {
+  font-family: 'Tanker';
+  src: url('/fonts/tanker-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Home hero: lookalike windows that carry the facts card into the 3D scene (src/scripts/heroIntro.ts).
-   Colours match the lit 3D windows as rendered. */
-.hero-flyer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 30;
-  width: 260px;
-  height: 180px;
-  overflow: hidden;
-  border-radius: 8px;
-  background: #1f150b;
-  box-shadow: 0 30px 50px -25px rgb(0 0 0 / 0.7);
-  transform-origin: 0 0;
-  pointer-events: none;
-  will-change: transform, opacity;
-  opacity: 0;
+/* Page titles that turn to dust on hover: only the text itself should trigger it, not the empty row beside it. */
+.dust-title {
+  width: fit-content;
 }
 
-.hero-flyer__bar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 5px;
-  height: 30px;
-  padding-right: 20px;
-  background: #a89a86;
+/* Images fade in through a hue shift, like layered print. */
+.develop {
+  animation: develop 1.2s var(--ease) both;
 }
 
-.hero-flyer__bar i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #4f4337;
-}
-
-.hero-flyer__text {
-  position: absolute;
-  left: 3.846%;
-  top: 19.44%;
-  width: 92.31%;
-  height: 77.78%;
-}
-
-/* Hold incoming headline animations until the page wipe starts revealing the page. */
-html.is-wiping .split__part {
-  animation-play-state: paused;
-}
-
-/* The page wipe replaces Astro's default crossfade. */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-}
-
-/* Home field (src/scripts/field): WebGPU canvas behind the content; html already paints --bg. */
-.field-canvas {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-html:has(.field-canvas) body {
-  background: transparent;
-}
-
-/* Title morphs (morph.ts) skip the wipe: quick crossfade, the named title glides between pages. */
-html.is-morphing::view-transition-old(root) {
-  animation: 0.35s var(--ease) both vt-fade-out;
-}
-
-html.is-morphing::view-transition-new(root) {
-  animation: 0.5s var(--ease) 0.1s both vt-fade-in;
-}
-
-html.is-morphing::view-transition-group(*) {
-  animation-duration: 0.65s;
-  animation-timing-function: var(--ease);
-}
-
-/* Titles scale uniformly by height from their left edge instead of stretching to each other's box. */
-html.is-morphing::view-transition-old(*.title),
-html.is-morphing::view-transition-new(*.title) {
-  block-size: 100%;
-  inline-size: auto;
-}
-
-html.is-morphing::view-transition-old(*.title) {
-  animation: 0.25s var(--ease) both vt-fade-out;
-}
-
-html.is-morphing::view-transition-new(*.title) {
-  animation: 0.3s var(--ease) both vt-fade-in;
-}
-
-@keyframes vt-fade-out {
-  to {
+@keyframes develop {
+  from {
+    filter: saturate(2.4) hue-rotate(-60deg) contrast(1.2);
     opacity: 0;
   }
 }
 
-@keyframes vt-fade-in {
+/* Page transitions: the old page steps back, the new one rises in. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: 420ms var(--ease) both step-back;
+}
+
+::view-transition-new(root) {
+  animation: 520ms var(--ease) both rise-in;
+}
+
+@keyframes step-back {
+  to {
+    scale: 0.94;
+    opacity: 0;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    translate: 0 3rem;
+    opacity: 0;
+  }
+}
+
+/* In-page view switches (grid <-> list) only cross-fade the page itself. */
+html.vt-swap::view-transition-old(root),
+html.vt-swap::view-transition-new(root) {
+  animation-duration: 0.3s;
+  animation-name: fade;
+}
+
+@keyframes fade {
   from {
     opacity: 0;
   }
 }
 
-html.has-cursor,
-html.has-cursor * {
-  cursor: none !important;
+html.vt-swap::view-transition-old(root) {
+  animation-direction: reverse;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.55s;
+  animation-timing-function: var(--ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  .js [data-reveal] {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Print (mainly the CV): one column, no chrome, URLs after external links. */
-@media print {
-  .nav,
-  .footer,
-  .cursor,
-  .wipe,
-  .sindex,
-  .palette,
-  .skip,
-  .field-canvas,
-  [data-print-hide],
-  body::after {
-    display: none !important;
-  }
-
-  @page {
-    margin: 16mm;
-  }
-
-  html,
-  body,
-  :root[data-surface='light'] {
-    --bg: #fff;
-    --bg-raised: #fff;
-    --bg-sunken: #fff;
-    --line: #bbb;
-    --text: #000;
-    --text-soft: #222;
-    --text-muted: #444;
-    --text-faint: #777;
-    background: #fff !important;
-    color: #000;
-  }
-
-  .js [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
+    animation: none !important;
     transition: none !important;
   }
 
-  .split__part {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
     animation: none !important;
   }
+}
 
-  [data-parallax] {
-    translate: none !important;
+@media print {
+  body::after {
+    display: none;
+  }
+
+  [data-print-hide],
+  .chrome,
+  .foot {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+
+  main {
+    padding: 0;
   }
 
   a {
-    color: inherit;
-    text-decoration-color: #999;
-  }
-
-  a[href^='http']::after {
-    content: ' (' attr(href) ')';
-    font-size: 0.8em;
-    color: #444;
-    word-break: break-all;
-  }
-
-  h1,
-  h2,
-  h3 {
-    break-after: avoid;
-  }
-
-  section,
-  li {
-    break-inside: avoid;
+    text-decoration: none;
   }
 }

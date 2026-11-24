@@ -1,0 +1,263 @@
+---
+// Selected work, two ways: a grid of cards or a tidy list.
+import { getCollection } from 'astro:content';
+import Specimen from './Specimen.astro';
+
+interface Props {
+  heading?: string;
+}
+const { heading = 'Selected work' } = Astro.props;
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const no = (i: number) => String(i + 1).padStart(2, '0');
+---
+
+<section class="work" data-work aria-labelledby="work-title">
+  <div class="bar indent-2">
+    <h2 id="work-title" class="bar__label">
+      <span>{heading}</span><span class="count">({projects.length})</span>
+    </h2>
+    <div class="toggle" role="group" aria-label="View" data-work-controls hidden>
+      <button type="button" data-view="grid" aria-pressed="true">Grid</button>
+      <button type="button" data-view="list" aria-pressed="false">List</button>
+    </div>
+  </div>
+
+  <ol class="grid" data-grid>
+    {
+      projects.map((p, i) => (
+        <li class="card" data-id={p.id}>
+          <a class="card__link" href={`/projects/${p.id}`}>
+            <span class="tile card__tile" data-tilt>
+              <span class="tile__sheen" aria-hidden="true" />
+              <Specimen id={p.id} />
+            </span>
+            <span class="card__meta">
+              <span class="card__no pixel muted">{no(i)}</span>
+              <span class="card__text">
+                <span class="card__title display" data-dust>
+                  {p.data.title}
+                </span>
+                <span class="mono muted">
+                  {p.data.kind} · {p.data.year}
+                </span>
+              </span>
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+
+  <ol class="index" data-index hidden>
+    {
+      projects.map((p, i) => (
+        <li class="row" data-id={p.id}>
+          <a class="row__link" href={`/projects/${p.id}`}>
+            <span class="row__no pixel muted">{no(i)}</span>
+            <span class="row__title display" data-dust>
+              <span class="sr-only">{p.data.title}</span>
+              <span class="ripple" aria-hidden="true">
+                {[...p.data.title].map((ch, j) => (
+                  <span style={`--i: ${j}`}>{ch === ' ' ? ' ' : ch}</span>
+                ))}
+              </span>
+            </span>
+            <span class="row__summary muted">{p.data.summary}</span>
+            <span class="row__tech mono muted">{p.data.tech.join(', ')}</span>
+            <span class="row__year mono">{p.data.year}</span>
+          </a>
+          <div class="row__peek" aria-hidden="true">
+            <div class="tile">
+              <Specimen id={p.id} />
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<script>
+  import '../scripts/work';
+</script>
+
+<style>
+  .toggle:not([hidden]) {
+    display: inline-flex;
+  }
+
+  /* Grid view */
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: clamp(2rem, 4vw, 3rem) var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .grid[hidden] {
+    display: none;
+  }
+
+  /* Cards sit at staggered heights and nudges, not on a tidy row. */
+  @media (min-width: 64rem) {
+    .grid {
+      padding-bottom: 4rem;
+    }
+
+    .card:nth-child(3n + 2) {
+      translate: 0 4rem;
+    }
+
+    .card:nth-child(3n + 3) {
+      translate: -1rem 1.5rem;
+    }
+  }
+
+  .card__link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .card__tile {
+    display: block;
+    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+  }
+
+  .card__meta {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: var(--gap);
+    margin-top: 1rem;
+  }
+
+  .card__no {
+    padding-top: 0.35em;
+  }
+
+  .card__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .card__title {
+    width: fit-content;
+    font-size: clamp(2rem, 3vw, 2.75rem);
+    line-height: 0.9;
+  }
+
+  /* List view */
+
+  .index {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .index[hidden] {
+    display: none;
+  }
+
+  .row {
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .row__link {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    gap: 0.25rem var(--gap);
+    align-items: baseline;
+    padding-block: 1.1rem;
+    text-decoration: none;
+  }
+
+  .row__title {
+    width: fit-content;
+    font-size: clamp(2.25rem, 5vw, 4.5rem);
+    line-height: 0.9;
+  }
+
+  .row__summary,
+  .row__tech {
+    grid-column: 2 / -1;
+  }
+
+  .row__year {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  @media (min-width: 64rem) {
+    .row__link {
+      grid-template-columns: 3rem minmax(0, 1.25fr) minmax(0, 1.1fr) minmax(0, 0.6fr) 3rem;
+    }
+
+    .row__summary,
+    .row__tech {
+      grid-column: auto;
+    }
+
+    .row__year {
+      grid-column: auto;
+      grid-row: auto;
+      text-align: right;
+    }
+
+    .row__summary {
+      max-width: 28rem;
+    }
+  }
+
+  .ripple span {
+    display: inline-block;
+    transition: translate 0.45s var(--ease) calc(var(--i) * 22ms);
+  }
+
+  @media (hover: hover) {
+    .row__link:hover .ripple span,
+    .row__link:focus-visible .ripple span {
+      translate: 0 -0.12em;
+    }
+
+    .row__link:hover .ripple span:nth-child(odd),
+    .row__link:focus-visible .ripple span:nth-child(odd) {
+      translate: 0 0.06em;
+    }
+  }
+
+  /* A small preview follows the pointer over the list (fine pointers only). */
+  .row__peek {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) and (min-width: 64rem) {
+    .row__peek {
+      position: fixed;
+      z-index: 40;
+      left: 0;
+      top: 0;
+      display: block;
+      width: 17rem;
+      translate: calc(var(--mx, -999px) + 1.25rem) calc(var(--my, -999px) - 50%);
+      opacity: 0;
+      scale: 0.96;
+      pointer-events: none;
+      transition:
+        opacity 0.2s,
+        scale 0.3s var(--ease);
+    }
+
+    .row:hover .row__peek {
+      opacity: 1;
+      scale: 1;
+    }
+
+    .row__peek .tile {
+      padding: 0.75rem;
+    }
+  }
+</style>

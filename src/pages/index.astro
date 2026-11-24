@@ -1,461 +1,184 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import ProjectList from '../components/ProjectList.astro';
-import SplitText from '../components/SplitText.astro';
-import Marquee from '../components/Marquee.astro';
-import JsonLd from '../components/JsonLd.astro';
+import Typed from '../components/Typed.astro';
+import Work from '../components/Work.astro';
 import { site } from '../data/site';
-import { now } from '../data/now';
+import { education, experience } from '../data/cv';
 
-const skills = ['Java', 'Python', 'C', 'HTML/CSS', 'Git', 'Linux', 'Algorithms', 'OOP', 'Win32 API'];
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 
-const info = [
-  { label: 'Based in', value: 'Limerick, Ireland', clock: true },
+const notes = [
   { label: 'Studying', value: 'Immersive Software Engineering, UL' },
-  { label: 'Learning', value: 'Java, Python and C' },
-  { label: 'Off the clock', value: 'Sport and films' },
+  { label: 'Languages', value: 'C, Java, Python' },
+  { label: 'Outside college', value: 'American football, films' },
+  { label: 'Looking for', value: 'Internships and side projects' },
 ];
 
-const jsonLd = [
+type Item = { main: string; side: string; href?: string };
+const columns: { title: string; items: Item[] }[] = [
   {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: site.name,
-    url: Astro.site?.href,
-    email: `mailto:${site.email}`,
-    jobTitle: 'Software engineering student',
-    affiliation: { '@type': 'CollegeOrUniversity', name: 'University of Limerick' },
-    homeLocation: { '@type': 'Place', name: 'Limerick, Ireland' },
-    sameAs: [site.github, site.linkedin],
+    title: 'Projects',
+    items: projects.map((p) => ({ main: p.data.title, side: String(p.data.year), href: `/projects/${p.id}` })),
   },
+  { title: 'Experience', items: experience.map((e) => ({ main: e.org, side: e.dates })) },
+  { title: 'Education', items: education.map((e) => ({ main: e.org, side: e.dates })) },
   {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'alby.software',
-    url: Astro.site?.href,
-    author: { '@type': 'Person', name: site.name },
+    title: 'Elsewhere',
+    items: [
+      { main: 'Email', side: site.email, href: `mailto:${site.email}` },
+      { main: 'GitHub', side: 'AlbusAlbatron', href: site.github },
+      { main: 'LinkedIn', side: 'alby-mcnamara', href: site.linkedin },
+      { main: 'CV', side: 'Web version', href: '/cv' },
+    ],
   },
 ];
+
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  url: Astro.site?.href,
+  email: `mailto:${site.email}`,
+  jobTitle: site.role,
+  affiliation: { '@type': 'CollegeOrUniversity', name: 'University of Limerick' },
+  sameAs: [site.github, site.linkedin],
+};
 ---
 
-<Base ogImage="/og/home.png">
-  <JsonLd data={jsonLd} />
-  <section class="hero wrap" data-surface="dark" data-index="Intro">
-    <div class="hero__scene" data-hero-scene data-facts={JSON.stringify(info)} aria-hidden="true"></div>
-    <p class="label" data-reveal data-field>Software engineering student — University of Limerick</p>
-    <SplitText text="Alby" by="char" class="hero__name" delay={120} data-parallax="0.18" data-field />
-    <p class="hero__intro" data-field data-reveal style="--reveal-delay: 180">
-      I'm in first year of Immersive Software Engineering at UL. Most of what I build starts with me wondering
-      if something is possible, and then wanting to find out.
-    </p>
-    <div class="hero__actions" data-field data-reveal style="--reveal-delay: 260">
-      <a class="button" href="/projects/wingravity">Play with WinGravity</a>
-      <a class="button button--ghost" href="/about">About me</a>
+<Base>
+  <script type="application/ld+json" set:html={JSON.stringify(person)} />
+
+  <div class="page">
+    <section class="hero" aria-label="Introduction">
+      <h1 class="sr-only">{site.name}, {site.role}</h1>
+      <Typed
+        class="statement hero__text indent-1"
+        text="I'm Alby, a first-year software engineering student at the University of Limerick. I mostly work in Java, Python and C."
+      />
+      <dl class="spec hero__notes small indent-4">
+        {
+          notes.map((n, i) => (
+            <div>
+              <dt class="label"><span class="pixel">({String(i + 1).padStart(2, '0')})</span> {n.label}</dt>
+              <dd>{n.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <div class="section">
+      <Work />
     </div>
-    <p class="hero__status label" data-field data-reveal style="--reveal-delay: 340">
-      <span class="hero__dot" aria-hidden="true"></span>{site.status} · <a href="/cv">CV</a>
-    </p>
-    <dl class="hero__info" data-tilt="5" data-glare data-field="box">
-      {
-        info.map((item, i) => (
-          <div class="hero__fact" data-reveal style={`--reveal-delay: ${300 + i * 80}`}>
-            <dt class="label">{item.label}</dt>
-            <dd>
-              {item.value}
-              {item.clock && (
-                <>
-                  {' '}
-                  <span class="hero__clock" data-clock hidden>
-                    · <time />
-                  </span>
-                </>
-              )}
-            </dd>
-          </div>
-        ))
-      }
-    </dl>
-  </section>
 
-  <Marquee items={skills} label="Skills" />
-
-  <section class="wrap section" aria-labelledby="work" data-surface="light" data-index="Work">
-    <h2 id="work" class="label section__label" data-field data-reveal>Selected work</h2>
-    <ProjectList />
-  </section>
-
-  <section class="wrap section" aria-labelledby="now" data-surface="light" data-index="Now">
-    <h2 id="now" class="label section__label" data-field data-reveal>Now <span class="now__updated">· updated {now.updated}</span></h2>
-    <dl class="now" data-reveal>
-      {
-        now.items.map((item) => (
-          <div class="now__row" data-field>
-            <dt class="label">{item.label}</dt>
-            <dd>{item.value}</dd>
-          </div>
-        ))
-      }
-    </dl>
-  </section>
-
-  <section class="wrap section teaser" aria-labelledby="more" data-surface="light" data-index="Off the keyboard">
-    <h2 id="more" class="label section__label" data-field data-reveal>Off the keyboard</h2>
-    <p class="teaser__text" data-field data-reveal data-liquid>
-      Away from the laptop I play sport, I've coached underage teams back home, and I watch a lot of films.
-    </p>
-    <div class="hero__actions" data-field data-reveal>
-      <a class="button button--ghost" href="/about">More about me</a>
-      <a class="button button--ghost" href="/cv">Read my CV</a>
-    </div>
-  </section>
+    <section class="section" aria-labelledby="everything">
+      <div class="bar indent-6">
+        <h2 id="everything" class="bar__label"><span>Overview</span></h2>
+      </div>
+      <div class="columns small">
+        {
+          columns.map((col) => (
+            <div>
+              <h3 class="label muted columns__title">{col.title}</h3>
+              <ul>
+                {col.items.map((item) =>
+                  item.href ? (
+                    <li>
+                      <a href={item.href}>
+                        <span data-dust>{item.main}</span>
+                        <span class="muted">{item.side}</span>
+                      </a>
+                    </li>
+                  ) : (
+                    <li>
+                      <span>{item.main}</span>
+                      <span class="muted">{item.side}</span>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+  </div>
 </Base>
-
-<script>
-  let timer: number | undefined;
-
-  const format = new Intl.DateTimeFormat('en-IE', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Europe/Dublin',
-  });
-
-  document.addEventListener('astro:page-load', () => {
-    const clock = document.querySelector<HTMLElement>('[data-clock]');
-    if (!clock) return;
-    const time = clock.querySelector('time')!;
-    const tick = () => (time.textContent = format.format(new Date()));
-    tick();
-    clock.hidden = false;
-    timer = window.setInterval(tick, 30_000);
-  });
-
-  document.addEventListener('astro:before-swap', () => clearInterval(timer));
-</script>
-
-<script>
-  let dispose: (() => void) | undefined;
-  let disposeField: (() => void) | undefined;
-  let scheduled = 0;
-
-  const supportsWebGL = () => {
-    try {
-      return !!document.createElement('canvas').getContext('webgl2');
-    } catch {
-      return false;
-    }
-  };
-
-  // Data-saver connections and low-end devices get the plain HTML card instead of the 3D scene.
-  const wants3D = () => {
-    const nav = navigator as Navigator & { connection?: { saveData?: boolean }; deviceMemory?: number };
-    if (nav.connection?.saveData) return false;
-    if (nav.deviceMemory !== undefined && nav.deviceMemory <= 2) return false;
-    if (nav.hardwareConcurrency && nav.hardwareConcurrency <= 2) return false;
-    return true;
-  };
-
-  const TRIGGERS = ['pointermove', 'wheel', 'scroll', 'keydown', 'touchstart'] as const;
-  let trigger: (() => void) | undefined;
-
-  document.addEventListener('astro:page-load', () => {
-    const container = document.querySelector<HTMLElement>('[data-hero-scene]');
-    // Phones keep the HTML card: the scene would be tiny there and isn't worth the download.
-    const wide = window.matchMedia('(min-width: 48.01rem)').matches;
-    if (!container || !wide || !wants3D() || !supportsWebGL()) return;
-    const loadedAt = performance.now();
-
-    const mount = async () => {
-      if (!container.isConnected) return;
-      const [{ mountHero3D }, { playIntro }] = await Promise.all([
-        import('../scripts/hero3d'),
-        import('../scripts/heroIntro'),
-      ]);
-      const facts = JSON.parse(container.dataset.facts ?? '[]');
-      // The fluid/light field (WebGPU) follows once the hero has settled; it checks its own support.
-      scheduled = window.setTimeout(async () => {
-        const { mountField } = await import('../scripts/field');
-        const teardown = await mountField().catch(() => null);
-        if (!container.isConnected) return teardown?.();
-        disposeField = teardown ?? undefined;
-      }, 1200);
-      const scene = await mountHero3D(container, facts);
-      if (!container.isConnected) return scene.dispose();
-      // The static card morphs into the 3D windows rather than the scene just appearing.
-      const card = document.querySelector<HTMLElement>('.hero__info');
-      const intro = card ? playIntro(card, container, scene) : null;
-      if (!intro) container.classList.add('is-ready', 'has-text');
-      dispose = () => {
-        intro?.cancel();
-        scene.dispose();
-      };
-    };
-
-    // Build the scene on the first sign of a visitor (mouse, scroll, keys), not during page load, and never
-    // before the page wipe and headline have finished. Visitors who don't touch anything get it when idle.
-    let started = false;
-    const start = () => {
-      if (started) return;
-      started = true;
-      TRIGGERS.forEach((t) => window.removeEventListener(t, start));
-      clearTimeout(scheduled);
-      scheduled = window.setTimeout(mount, Math.max(0, 900 - (performance.now() - loadedAt)));
-    };
-    trigger = start;
-    TRIGGERS.forEach((t) => window.addEventListener(t, start, { passive: true }));
-    scheduled = window.setTimeout(() => {
-      if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 2000 });
-      else start();
-    }, 5000);
-  });
-
-  document.addEventListener('astro:before-swap', () => {
-    clearTimeout(scheduled);
-    if (trigger) TRIGGERS.forEach((t) => window.removeEventListener(t, trigger!));
-    trigger = undefined;
-    dispose?.();
-    dispose = undefined;
-    disposeField?.();
-    disposeField = undefined;
-  });
-</script>
 
 <style>
   .hero {
-    position: relative;
+    padding-top: clamp(3rem, 11vw, 9rem);
+  }
+
+  .hero :global(.hero__text) {
+    max-width: 24ch;
+  }
+
+  .hero__notes {
+    margin-top: clamp(3rem, 9vw, 8rem);
+  }
+
+  .hero__notes dt {
+    color: var(--muted);
+  }
+
+  /* Overview columns sit at staggered heights. */
+  @media (min-width: 64rem) {
+    .columns {
+      padding-bottom: 4rem;
+    }
+
+    .columns > div:nth-child(2) {
+      translate: 0 3.5rem;
+    }
+
+    .columns > div:nth-child(3) {
+      translate: 0 -1rem;
+    }
+
+    .columns > div:nth-child(4) {
+      translate: 0 5.5rem;
+    }
+  }
+
+  .columns {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem);
-    grid-template-areas:
-      'label label'
-      'name info'
-      'intro info'
-      'actions info'
-      'status info';
-    column-gap: clamp(2rem, 6vw, 5rem);
-    padding-block: clamp(4rem, 14vw, 10rem) clamp(3rem, 8vw, 6rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 2rem var(--gap);
+    margin-top: 1rem;
   }
 
-  .hero > :not(.hero__scene) {
-    position: relative;
-    z-index: 1;
+  .columns__title {
+    margin-bottom: 0.4rem;
   }
 
-  .hero__scene {
-    position: absolute;
-    /* Bleed past the content column to the viewport edge so windows aren't clipped. */
-    inset: 0 calc((100% - 100vw) / 2 + var(--gutter)) 0 46%;
-    z-index: 0;
-    opacity: 0;
-    transition: opacity 1.2s var(--ease);
-  }
-
-  .hero__scene.is-ready {
-    opacity: 1;
-  }
-
-  /* While its facts fly into the 3D scene, the card itself dissolves. */
-  .hero__info {
-    transition:
-      background-color 0.45s var(--ease),
-      border-color 0.45s var(--ease),
-      box-shadow 0.45s var(--ease);
-  }
-
-  .hero__info:global(.is-morphing) {
-    background-color: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    pointer-events: none;
-  }
-
-  .hero__info:global(.is-morphing) .hero__fact + .hero__fact {
-    border-top-color: transparent;
-  }
-
-  /* Once the facts are drawn on the 3D windows, the card stays only for screen readers. */
-  .hero:has(.hero__scene.has-text) .hero__info {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+  .columns ul {
+    margin: 0;
     padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+    list-style: none;
   }
 
-  .hero__scene :global(canvas) {
-    display: block;
-    width: 100%;
-    height: 100%;
+  .columns li > a,
+  .columns li > span:first-child {
+    display: inline;
   }
 
-  .hero > .label {
-    grid-area: label;
-  }
-
-  .hero__name {
-    grid-area: name;
-  }
-
-  .hero__intro {
-    grid-area: intro;
-  }
-
-  .hero > .hero__actions {
-    grid-area: actions;
-  }
-
-  .hero > .hero__status {
-    grid-area: status;
+  .columns li > a,
+  .columns li:not(:has(a)) {
     display: flex;
-    align-items: center;
-    gap: 0.6em;
-    margin: 1.75rem 0 0;
-    text-transform: none;
-    letter-spacing: 0.02em;
-  }
-
-  .hero__status a {
-    color: var(--text);
-  }
-
-  .hero__dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--text);
-    animation: pulse 2.4s var(--ease) infinite;
-  }
-
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.35;
-    }
-  }
-
-  .hero__info {
-    grid-area: info;
-    align-self: center;
-    position: relative;
-    z-index: 1;
-    margin: 0;
-    padding: 0.4rem 1.25rem;
-    background: var(--bg-raised);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6);
-  }
-
-  .hero__fact {
-    padding: 0.85rem 0;
-  }
-
-  .hero__fact + .hero__fact {
-    border-top: 1px solid var(--line);
-  }
-
-  .hero__fact dd {
-    margin: 0.3rem 0 0;
-  }
-
-  .hero__clock time {
-    font-variant-numeric: tabular-nums;
-  }
-
-  @media (max-width: 48rem) {
-    .hero__scene {
-      inset: 0 calc((100% - 100vw) / 2) auto 35%;
-      height: 15rem;
-      pointer-events: none;
-    }
-
-    .hero__scene.is-ready {
-      opacity: 0.4;
-    }
-
-    .hero {
-      grid-template-columns: 1fr;
-      grid-template-areas: 'label' 'name' 'intro' 'actions' 'status' 'info';
-    }
-
-    .hero__info {
-      margin-top: 3rem;
-    }
-  }
-
-  .hero__name {
-    margin: 0.2em 0 0.15em;
-    font-size: clamp(5rem, 22vw, 16rem);
-    font-weight: 500;
-    letter-spacing: -0.065em;
-    line-height: 0.85;
-    margin-left: -0.05em;
-  }
-
-  .hero__intro {
-    max-width: 36rem;
-    font-size: clamp(1.15rem, 2.4vw, 1.5rem);
-    line-height: 1.4;
-    letter-spacing: -0.01em;
-    color: var(--text-soft);
-  }
-
-  .hero__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 2rem;
-  }
-
-  .section {
-    padding-top: clamp(3rem, 8vw, 6rem);
-  }
-
-  .section__label {
-    margin-bottom: 1.5rem;
-    font-weight: 400;
-    letter-spacing: 0.04em;
-  }
-
-  .now__updated {
-    color: var(--text-muted);
-  }
-
-  .now {
-    display: grid;
-    gap: 0;
-    max-width: 44rem;
-    margin: 0;
-    border-top: 1px solid var(--line);
-  }
-
-  .now__row {
-    display: grid;
-    grid-template-columns: 8rem 1fr;
+    justify-content: space-between;
     gap: 1rem;
-    padding: 0.9rem 0;
-    border-bottom: 1px solid var(--line);
+    padding-block: 0.3rem;
+    text-decoration: none;
   }
 
-  .now__row dd {
-    margin: 0;
-    color: var(--text-soft);
+  .columns li > a:hover span:first-child {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
-  @media (max-width: 40rem) {
-    .now__row {
-      grid-template-columns: 1fr;
-      gap: 0.2rem;
-    }
-  }
-
-  .teaser__text {
-    max-width: 44rem;
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    line-height: 1.15;
-    letter-spacing: -0.03em;
+  .columns li span:last-child {
+    text-align: right;
   }
 </style>

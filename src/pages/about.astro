@@ -1,7 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
-import SplitText from '../components/SplitText.astro';
+import Typed from '../components/Typed.astro';
+import { site } from '../data/site';
 
 // Drop a photo (jpg/png/webp) into src/assets/about/ and it appears automatically.
 const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/about/*.{jpg,jpeg,png,webp,avif}', {
@@ -10,154 +11,122 @@ const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/about/*.{
 const photo = Object.values(photos)[0]?.default;
 
 const facts = [
-  { label: 'Studying', value: 'Immersive Software Engineering, University of Limerick' },
-  { label: 'Coding in', value: 'Java, Python and C' },
-  { label: 'Watching', value: 'A lot of films' },
+  { label: 'Studying', value: 'Immersive Software Engineering, UL' },
+  { label: 'From', value: 'Clonmel, Co. Tipperary' },
+  { label: 'Writing', value: 'C, Java, Python' },
+  { label: 'Outside college', value: 'American football, films' },
 ];
 ---
 
 <Base
   title="About"
   description="About Alby McNamara, a first-year Immersive Software Engineering student at the University of Limerick."
-  ogImage="/og/about.png"
 >
-  <section class="wrap intro" data-surface="dark" data-index="Intro">
-    <p class="label" data-reveal>About</p>
-    <SplitText
-      text="Hi, I'm Alby. I like building things just to see if I can."
-      delay={80}
-      data-parallax="0.1"
-    />
-  </section>
+  <div class="page">
+    <header class="head">
+      <h1 class="title dust-title outdent" data-dust>About</h1>
+      <Typed class="lede head__lede indent-2" text="I'm Alby. I study software engineering at the University of Limerick." />
+    </header>
 
-  <section class="wrap grid" data-surface="light">
-    <div class="prose story">
-      <h2 data-reveal>How I got into this</h2>
-      <p data-reveal>
-        I got into programming because I liked figuring out what a computer would actually let me do. Making a
-        normal app was fine, but the fun part for me was trying something a bit odd and seeing if it worked.
-      </p>
-      <p data-reveal>
-        That's where both of my projects came from. <a href="/projects/wingravity">WinGravity</a> started because I
-        wanted to see if I could make the windows on my desktop fall.
-        <a href="/projects/attention-service">Attention Service</a> started because I procrastinate, and I wanted a
-        blocker I couldn't just close.
-      </p>
-      <p data-reveal>
-        Now I'm in first year of Immersive Software Engineering at UL, where I'm learning how to turn that
-        curiosity into software other people can rely on.
-      </p>
-
-      <h2 data-reveal>Off the keyboard</h2>
-      <p data-reveal>
-        I play American football for UL, which is a good excuse to get away from a screen. Before college I played
-        football and basketball for my school and helped coach underage teams at Clonmel Commercials. Otherwise,
-        I'm probably watching a film.
-      </p>
-    </div>
-
-    <aside class="side">
-      {
-        photo && (
-          <figure class="photo" data-reveal>
-            <Image src={photo} alt="Alby McNamara" widths={[320, 640, 960]} sizes="(max-width: 48rem) 100vw, 22rem" />
-          </figure>
-        )
-      }
-      <dl class="facts" data-tilt="5" data-glare>
+    <div class="layout">
+      <aside aria-label="Quick facts" class="drop-2">
         {
-          facts.map((f, i) => (
-            <div class="fact" data-reveal style={`--reveal-delay: ${i * 70}`}>
-              <dt class="label">{f.label}</dt>
-              <dd>{f.value}</dd>
-            </div>
-          ))
+          photo && (
+            <span class="tile photo-tile">
+              <Image class="photo develop" src={photo} alt="Alby McNamara" widths={[360, 720]} sizes="22rem" />
+            </span>
+          )
         }
-      </dl>
-      <a class="button" href="/cv" data-reveal>See my CV →</a>
-    </aside>
-  </section>
+        <dl class="facts small">
+            {
+              facts.map((f) => (
+                <div>
+                  <dt class="label muted">{f.label}</dt>
+                  <dd>{f.value}</dd>
+                </div>
+              ))
+            }
+        </dl>
+      </aside>
+
+      <div class="prose">
+        <h2>How I got into this</h2>
+        <p>
+          I got into programming by messing around with what my own computer would let me do. Most of my
+          projects start with a question I want answered, and I keep going until I have one.
+        </p>
+        <p>
+          <a href="/projects/wingravity">WinGravity</a> and
+          <a href="/projects/attention-service">Attention Service</a> both started that way.
+        </p>
+        <p>
+          I'm in first year of Immersive Software Engineering at UL, where I'm learning Java, Python and C
+          properly, along with Git.
+        </p>
+        <h2>Outside of code</h2>
+        <p>
+          I play American football for UL. Before college I played football and basketball for my school and
+          helped coach underage teams at Clonmel Commercials. I've also worked part-time at a service station,
+          in a hotel restaurant and as an exam attendant. I watch a lot of films.
+        </p>
+        <h2>Get in touch</h2>
+        <p>
+          Email me at <a href={`mailto:${site.email}`}>{site.email}</a>, or find me on
+          <a href={site.linkedin}>LinkedIn</a> and <a href={site.github}>GitHub</a>.
+        </p>
+      </div>
+    </div>
+  </div>
 </Base>
 
 <style>
-  .intro {
-    padding-block: clamp(3rem, 10vw, 7rem) clamp(2.5rem, 6vw, 4.5rem);
+  .head {
+    padding-top: clamp(3rem, 9vw, 7rem);
   }
 
-  h1 {
-    max-width: 20ch;
-    margin-top: 0.5em;
-    font-size: clamp(2.25rem, 6.5vw, 4.75rem);
-    letter-spacing: -0.045em;
-    line-height: 1;
+  .head :global(.head__lede) {
+    max-width: 26ch;
+    margin-top: 1.25rem;
   }
 
-  .grid {
+  .layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
-    gap: clamp(2rem, 6vw, 5rem);
-    align-items: start;
+    gap: 3rem var(--gap);
+    margin-top: var(--section);
   }
 
-  .story h2:first-child {
-    margin-top: 0;
+  @media (min-width: 64rem) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      align-items: start;
+    }
+
+    aside {
+      position: sticky;
+      top: calc(var(--chrome) + 1.5rem);
+      max-width: 22rem;
+    }
   }
 
-  .side {
-    position: sticky;
-    top: 6rem;
-    display: grid;
-    gap: 1.75rem;
-    justify-items: start;
+  .photo-tile {
+    overflow: hidden;
+    margin-bottom: 1.5rem;
   }
 
   .photo {
-    margin: 0;
     width: 100%;
-    overflow: hidden;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-  }
-
-  .photo :global(img) {
-    width: 100%;
-    filter: grayscale(0.35) sepia(0.12);
-    transition: filter 0.6s var(--ease);
-  }
-
-  .photo:hover :global(img) {
-    filter: none;
+    border-radius: 10px;
   }
 
   .facts {
-    position: relative;
-    width: 100%;
     margin: 0;
-    padding: 0.4rem 1.25rem;
-    background: var(--bg-raised);
-    border: 1px solid var(--line);
-    border-radius: 14px;
   }
 
-  .fact {
-    padding: 0.9rem 0;
+  .facts div {
+    padding-block: 0.45rem;
   }
 
-  .fact + .fact {
-    border-top: 1px solid var(--line);
-  }
-
-  .fact dd {
-    margin: 0.3rem 0 0;
-  }
-
-  @media (max-width: 48rem) {
-    .grid {
-      grid-template-columns: 1fr;
-    }
-
-    .side {
-      position: static;
-    }
+  .facts dd {
+    margin: 0.1rem 0 0;
   }
 </style>

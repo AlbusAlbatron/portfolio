@@ -1,161 +1,184 @@
 ---
-import '@fontsource-variable/inter-tight';
-import '@fontsource/jetbrains-mono/400.css';
-import 'lenis/dist/lenis.css';
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource/silkscreen/latin-400.css';
+import '@fontsource/instrument-serif/latin-400.css';
+import '@fontsource/anton/latin-400.css';
 import '../styles/global.css';
-import { ClientRouter } from 'astro:transitions';
 import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
-import Cursor from '../components/Cursor.astro';
-import PageWipe from '../components/PageWipe.astro';
-import SectionIndex from '../components/SectionIndex.astro';
-import Palette from '../components/Palette.astro';
+import FitText from '../components/FitText.astro';
 import { site } from '../data/site';
-import interTight from '@fontsource-variable/inter-tight/files/inter-tight-latin-wght-normal.woff2?url';
-import jetbrainsMono from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?url';
+import archivo from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
+import plexMono from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2?url';
+import newsreader from '@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2?url';
+import instrument from '@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url';
 
 interface Props {
   title?: string;
   description?: string;
-  /** Site-relative path of the share image; defaults to the generic one. */
-  ogImage?: string;
 }
 
-const { title, description = site.description, ogImage = '/og.png' } = Astro.props;
-const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — Software Engineering Student`;
+const { title, description = site.description } = Astro.props;
+const fullTitle = title ? `${title} | ${site.name}` : `${site.name} | ${site.role}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImageUrl = new URL(ogImage, Astro.site);
+const ogImage = new URL('/og.png', Astro.site);
+
+const built = new Date();
+const builtLabel = new Intl.DateTimeFormat('en-IE', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'Europe/Dublin',
+}).format(built);
 ---
 
 <!doctype html>
-<html lang="en-IE" data-surface="dark">
+<html lang="en-IE">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="preload" href={interTight} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={jetbrainsMono} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={archivo} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={plexMono} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={newsreader} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={instrument} as="font" type="font/woff2" crossorigin />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link rel="alternate" type="application/rss+xml" title={`${site.name} — Journal`} href="/rss.xml" />
-    <meta name="theme-color" content="#26201b" />
+    <meta name="theme-color" content="#f3f3f0" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={`${fullTitle} — alby.software`} />
+    <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
-      // Before first paint: mark JS as available and honour a pinned lights preference (see scripts/lights.ts).
       document.documentElement.classList.add('js');
-      try {
-        var lights = localStorage.getItem('lights');
-        if (lights === 'dark' || lights === 'light') {
-          document.documentElement.dataset.surface = lights;
-          document.documentElement.dataset.lights = lights;
-        }
-      } catch (e) {}
     </script>
-    <ClientRouter />
   </head>
   <body>
-    <a class="skip" href="#main">Skip to content</a>
-    <Nav />
+    <a class="skip mono" href="#main">Skip to content</a>
+
+
+    <header class="chrome page">
+      <a class="chrome__brand" href="/">
+        <span class="chrome__mark" aria-hidden="true"></span>
+        <span class="chrome__name" data-dust>{site.name}</span>
+      </a>
+      <p class="chrome__cell chrome__role muted">Software Engineering, University of Limerick</p>
+      <p class="chrome__cell chrome__where mono muted">
+        52.66°N 8.63°W · <time class="pixel" data-clock>Limerick</time>
+      </p>
+      <p class="chrome__cell chrome__status">
+        <span class="chrome__dot" aria-hidden="true"></span>{site.status}
+      </p>
+      <Nav />
+    </header>
+
     <main id="main">
       <slot />
     </main>
-    <Footer />
-    <Cursor />
-    <PageWipe />
-    <SectionIndex />
-    <Palette />
+
+    <footer class="foot page">
+      <FitText text={site.name} dust />
+      <div class="foot__row small">
+        <a class="link" href={`mailto:${site.email}`} data-dust>{site.email}</a>
+        <a class="link" href={site.github} data-dust>GitHub</a>
+        <a class="link" href={site.linkedin} data-dust>LinkedIn</a>
+        <span class="mono muted">Updated {builtLabel} · No tracking</span>
+        <a class="link" href="#main">Back to top ↑</a>
+      </div>
+    </footer>
+
     <script>
-      import { initReveal } from '../scripts/reveal';
-      import { initSurface } from '../scripts/surface';
-      import { initSmooth } from '../scripts/smooth';
-      import { initCursor } from '../scripts/cursor';
-      import { initWipe } from '../scripts/wipe';
-      import { initMorph } from '../scripts/morph';
-      import { initLiquid } from '../scripts/liquid';
-      import { initTilt } from '../scripts/tilt';
-      import { initMagnetic } from '../scripts/magnetic';
-      import { initWeight } from '../scripts/weight';
-      import { initMarquee } from '../scripts/marquee';
-      import { initProgress } from '../scripts/progress';
-      import { initCopy } from '../scripts/copy';
-      import { initPalette } from '../scripts/palette';
-      import { applyLights, getLights, nextLights, setLights } from '../scripts/lights';
-
-      initSmooth();
-      initCursor();
-      initWipe();
-      initMorph();
-      initLiquid();
-      initTilt();
-      initMagnetic();
-      initWeight();
-      initMarquee();
-      initProgress();
-      initCopy();
-      initPalette();
-
-      // The footer's three-state lights button (auto → dark → light). Delegated: the footer is re-rendered
-      // on every navigation.
-      const syncLightsButtons = () => {
-        const lights = getLights();
-        document.querySelectorAll<HTMLButtonElement>('[data-lights-cycle]').forEach((b) => {
-          b.hidden = false;
-          b.setAttribute('aria-label', `Lights: ${lights}. Switch to ${nextLights(lights)}`);
-          const value = b.querySelector('[data-lights-value]');
-          if (value) value.textContent = lights;
-        });
-      };
-      document.addEventListener('click', (e) => {
-        if ((e.target as Element).closest('[data-lights-cycle]')) setLights(nextLights(getLights()));
-      });
-      document.addEventListener('lights:change', syncLightsButtons);
-      document.addEventListener('astro:page-load', syncLightsButtons);
-
-      document.addEventListener('astro:after-swap', () => {
-        // <html> attributes are replaced on every navigation; put ours back before the new page paints.
-        document.documentElement.classList.add('js');
-        applyLights();
-      });
-      document.addEventListener('astro:page-load', () => {
-        initReveal();
-        initSurface();
-      });
-    </script>
-    <script is:inline>
-      console.log(
-        '%cAlby McNamara%c\nCurious how this is built? https://alby.software/projects/this-site — source: https://github.com/AlbusAlbatron/portfolio',
-        'font: 500 18px "Inter Tight", system-ui, sans-serif; letter-spacing: -0.02em',
-        'font: 12px ui-monospace, monospace; color: #857a6c',
-      );
+      import '../scripts/chrome';
+      import '../scripts/dust';
     </script>
   </body>
 </html>
 
 <style>
-  .skip {
-    position: absolute;
-    left: 1rem;
-    top: -3rem;
-    z-index: 100;
-    padding: 0.5rem 1rem;
-    background: var(--text);
-    color: var(--bg);
+  .chrome {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0 var(--gap);
+    height: var(--chrome);
+    background: var(--bg);
+    font-size: 0.8125rem;
   }
 
-  .skip:focus {
-    top: 1rem;
+  .chrome__brand {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+
+  .chrome__mark {
+    width: 0.65rem;
+    height: 0.65rem;
+    background: var(--ink);
+  }
+
+  .chrome__cell {
+    display: none;
+    white-space: nowrap;
+  }
+
+  .chrome__dot {
+    display: inline-block;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-right: 0.45rem;
+    border-radius: 50%;
+    background: #1f9d55;
+    vertical-align: 0.1em;
+  }
+
+  @media (min-width: 72rem) {
+    .chrome {
+      grid-template-columns: 1.1fr 1.6fr 1.3fr 1.6fr auto;
+    }
+
+    .chrome__cell {
+      display: block;
+    }
+  }
+
+  .foot {
+    padding-top: var(--section);
+    padding-bottom: var(--pad);
+    overflow-x: clip;
+  }
+
+  /* The footer name runs off the right edge on wide screens. */
+  @media (min-width: 64rem) {
+    .foot :global(.fit) {
+      margin-right: calc(-1 * var(--pad) - 4vw);
+    }
+  }
+
+  .foot__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .foot__row a:last-child {
+    margin-left: auto;
   }
 </style>

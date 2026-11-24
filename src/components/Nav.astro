@@ -1,153 +1,49 @@
 ---
-import { site } from '../data/site';
-
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const links = [
-  { href: '/projects', label: 'Projects' },
-  { href: '/journal', label: 'Journal' },
+const items = [
+  { href: '/projects', label: 'Work' },
   { href: '/about', label: 'About' },
+  { href: '/cv', label: 'CV' },
 ];
-const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
 ---
 
-<header class="nav">
-  <div class="wrap nav__inner">
-    <a href="/" class="nav__name" aria-current={path === '/' ? 'page' : undefined}>{site.name}</a>
-    <nav aria-label="Main">
-      <ul class="nav__links">
-        {
-          links.map((l) => (
-            <li>
-              <a href={l.href} aria-current={isActive(l.href) ? 'page' : undefined}>
-                {l.label}
-              </a>
-            </li>
-          ))
-        }
+<nav aria-label="Main">
+  <ul class="nav" data-stretch>
+    {
+      items.map((item) => (
         <li>
-          <a href="/cv" class="button nav__cv" aria-current={isActive('/cv') ? 'page' : undefined}>CV</a>
+          <a href={item.href} aria-current={path.startsWith(item.href) ? 'page' : undefined} data-dust>
+            {item.label}
+          </a>
         </li>
-        <li class="nav__palette-item">
-          <button type="button" class="nav__palette label" data-palette-open aria-keyshortcuts="Meta+K Control+K" hidden>
-            <span data-palette-key>⌘K</span><span class="sr-only"> command palette</span>
-          </button>
-        </li>
-      </ul>
-    </nav>
-  </div>
-  <div class="nav__progress" aria-hidden="true"><span data-progress-bar></span></div>
-</header>
+      ))
+    }
+  </ul>
+</nav>
 
 <style>
   .nav {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: var(--bg);
-    border-bottom: 1px solid transparent;
-  }
-
-  .nav__progress {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    pointer-events: none;
-  }
-
-  .nav__progress span {
-    display: block;
-    height: 100%;
-    background: var(--text);
-    transform: scaleX(0);
-    transform-origin: left;
-    will-change: transform;
-  }
-
-  .nav__inner {
+    --stretch: 100%;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-block: 1rem;
-  }
-
-  .nav__name {
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .nav__links {
-    display: flex;
-    align-items: center;
-    gap: clamp(0.9rem, 3vw, 2rem);
+    gap: clamp(0.9rem, 2vw, 1.75rem);
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 0.95rem;
   }
 
-  .nav__links a:not(.button) {
-    position: relative;
-    color: var(--text-muted);
+  .nav a {
+    display: inline-block;
+    font-stretch: var(--stretch);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
     text-decoration: none;
-    transition: color 0.2s var(--ease);
   }
 
-  .nav__links a:not(.button):hover,
-  .nav__links a[aria-current='page']:not(.button) {
-    color: var(--text);
-  }
-
-  .nav__links a:not(.button)::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -0.3em;
-    height: 1px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.35s var(--ease);
-  }
-
-  .nav__links a[aria-current='page']:not(.button)::after {
-    transform: scaleX(1);
-  }
-
-  .nav__cv {
-    padding: 0.35em 1em;
-  }
-
-  .nav__palette {
-    padding: 0.3em 0.6em;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition:
-      color 0.2s var(--ease),
-      border-color 0.2s var(--ease);
-  }
-
-  .nav__palette:hover {
-    color: var(--text);
-    border-color: var(--text);
-  }
-
-  @media (max-width: 40rem) {
-    .nav__palette-item {
-      display: none;
-    }
-  }
-
-  .nav__cv[aria-current='page'] {
-    background: var(--text);
-    color: var(--bg);
+  .nav a[aria-current='page'],
+  .nav a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
   }
 </style>

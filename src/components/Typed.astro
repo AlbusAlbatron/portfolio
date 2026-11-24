@@ -1,0 +1,55 @@
+---
+// Text that types itself out once on load. Wrap words in *asterisks* for the serif italic.
+// Screen readers get the plain sentence; the animated letters are hidden from them.
+interface Props {
+  text: string;
+  as?: 'h1' | 'p';
+  class?: string;
+  /** Milliseconds per character. */
+  speed?: number;
+  delay?: number;
+}
+const { text, as: Tag = 'p', class: className, speed = 16, delay = 250 } = Astro.props;
+
+const parts = text.split('*').map((t, i) => ({ t, em: i % 2 === 1 }));
+let n = 0;
+const chunks = parts.map((p) => ({ em: p.em, chars: [...p.t].map((c) => ({ c, i: n++ })) }));
+const plain = text.replaceAll('*', '');
+---
+
+<Tag class:list={['typed', className]} style={`--speed: ${speed}ms; --delay: ${delay}ms; --total: ${n}`}>
+  <span class="sr-only">{plain}</span><span aria-hidden="true">{chunks.map((ch) => ch.em ? <em>{ch.chars.map((x) => <span style={`--i:${x.i}`}>{x.c}</span>)}</em> : ch.chars.map((x) => <span style={`--i:${x.i}`}>{x.c}</span>))}<span class="typed__caret"></span></span>
+</Tag>
+
+<style>
+  .typed [style*='--i'] {
+    animation: type-in 60ms linear both;
+    animation-delay: calc(var(--delay) + var(--i) * var(--speed));
+  }
+
+  .typed__caret {
+    display: inline-block;
+    width: 0.07em;
+    height: 0.82em;
+    margin-left: 0.06em;
+    background: var(--ink);
+    vertical-align: -0.06em;
+    animation: blink 1s steps(1) infinite;
+  }
+
+  @keyframes type-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>

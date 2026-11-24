@@ -1,6 +1,7 @@
 ---
 title: Attention Service
-summary: A Windows service that blocks distracting websites and programs for a set time — and stops you from switching it off early.
+kind: Website and app blocker
+summary: A Windows service that blocks distracting websites and programs for a set time, and stops you switching it off early.
 year: 2026
 tech: [C, Win32 API, Windows Services]
 repo: https://github.com/AlbusAlbatron/Attention-Service
@@ -22,8 +23,8 @@ order: 2
 ## The problem
 
 I procrastinate. Browser extensions and focus apps never worked for me, because closing them takes two
-clicks. I wanted a blocker that was genuinely annoying to get around — so it had to live below the level
-where I'd normally go to turn things off.
+clicks. I wanted a blocker that was actually hard to get around, so it had to run somewhere I couldn't
+easily switch it off.
 
 ## How it works
 
@@ -57,11 +58,11 @@ that matches is opened with `PROCESS_TERMINATE` rights and closed.
 
 A blocker is useless if you can just kill it. So alongside whatever the user adds, a fixed set of tools is
 always on the blocklist while a session is running: `taskmgr.exe`, `cmd.exe`, `powershell.exe`, `mmc.exe`
-(the Services console) and `regedit.exe`. Every obvious way to stop the service gets closed the moment it opens.
+(the Services console) and `regedit.exe`. That closes the obvious ways of stopping the service.
 
 ## What I learned
 
-- **How Windows services work** — the service control manager, running without a desktop, and installing
+- **How Windows services work:** the service control manager, running without a desktop, and installing
   and removing a service with `sc`.
 - **Wide strings and encodings.** The blocklist is stored as UTF-16 (`wchar_t`), but the hosts file wants
   plain UTF-8, so every entry goes through `WideCharToMultiByte` on its way in.

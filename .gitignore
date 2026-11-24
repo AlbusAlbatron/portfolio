@@ -29,3 +29,6 @@ pnpm-debug.log*
 # Only the redacted web CV may be committed; never the original with phone/referee details.
 *.pdf
 !public/cv.pdf
+
+# Fontshare fonts are fetched at build time (licence: no public redistribution)
+public/fonts/

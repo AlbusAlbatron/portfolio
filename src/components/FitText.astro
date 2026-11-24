@@ -1,0 +1,31 @@
+---
+// One line of text sized to exactly fill its container's width (see scripts/chrome.ts).
+interface Props {
+  text: string;
+  as?: 'p' | 'h1' | 'span';
+  /** Crumble into dust on hover (scripts/dust.ts). */
+  dust?: boolean;
+}
+const { text, as: Tag = 'p', dust = false } = Astro.props;
+---
+
+<Tag class="fit" data-fit aria-label={text}><span aria-hidden="true" data-dust={dust ? '' : undefined}>{text}</span></Tag>
+
+<style>
+  .fit {
+    display: block;
+    overflow: hidden;
+    font-family: var(--heavy);
+    font-weight: 400;
+    font-size: 12vw;
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .fit span {
+    display: inline-block;
+    padding-bottom: 0.14em;
+  }
+</style>

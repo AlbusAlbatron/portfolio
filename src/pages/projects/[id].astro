@@ -1,20 +1,334 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection, render } from 'astro:content';
-import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import Base from '../../layouts/Base.astro';
+import Specimen from '../../components/Specimen.astro';
 
 export async function getStaticPaths() {
-  const projects = await getCollection('projects', (p) => !p.data.interactive);
-  return projects.map((project) => ({ params: { id: project.id }, props: { project } }));
+  const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+  return projects.map((project, i) => ({
+    params: { id: project.id },
+    props: { project, index: i, next: projects[(i + 1) % projects.length] },
+  }));
 }
 
-const { project } = Astro.props;
-const { Content } = await render(project);
+const { project, index, next } = Astro.props;
+const { title, kind, summary, year, tech, repo, cover, gallery } = project.data;
+const { Content, headings } = await render(project);
+const toc = headings.filter((h) => h.depth === 2);
+const no = String(index + 1).padStart(2, '0');
+const words = (project.body ?? '').split(/\s+/).filter(Boolean).length;
+const minutes = Math.max(1, Math.round(words / 220));
 ---
 
-<ProjectLayout project={project}>
-  <div class="wrap">
-    <div class="prose" data-reveal>
-      <Content />
+<Base title={title} description={summary}>
+  <article class="page">
+    <div class="bar mono crumbs">
+      <p><a class="link" href="/projects">Work</a> / {no}</p>
+      <p class="muted">{kind}</p>
     </div>
-  </div>
-</ProjectLayout>
+
+    <header class="head">
+      <h1 class="title outdent">{title}</h1>
+      <p class="lede head__lede indent-4">{summary}</p>
+    </header>
+
+    <div class="intro">
+      <dl class="spec intro__spec small drop-2">
+        <div>
+          <dt class="mono">Type</dt>
+          <dd>{kind}</dd>
+        </div>
+        <div>
+          <dt class="mono">Year</dt>
+          <dd>{year}</dd>
+        </div>
+        <div>
+          <dt class="mono">Built with</dt>
+          <dd>{tech.join(', ')}</dd>
+        </div>
+        <div>
+          <dt class="mono">Source</dt>
+          <dd><a class="link" href={repo}>GitHub ↗</a></dd>
+        </div>
+        <div>
+          <dt class="mono">Reading time</dt>
+          <dd>{minutes} min</dd>
+        </div>
+      </dl>
+      <figure class="intro__figure lift-1">
+        {
+          cover ? (
+            <span class="tile intro__cover">
+              <Image class="develop" src={cover} alt="" widths={[720, 1440]} sizes="(min-width: 64rem) 60vw, 100vw" loading="eager" />
+            </span>
+          ) : (
+            <span class="tile intro__specimen">
+              <Specimen id={project.id} />
+            </span>
+          )
+        }
+        <figcaption class="mono muted">{cover ? 'Screenshot' : 'Diagram drawn from the project\'s source'}</figcaption>
+      </figure>
+    </div>
+
+    <div class="body">
+      {
+        toc.length > 0 && (
+          <nav class="toc small" aria-label="On this page">
+            <p class="label muted toc__label">On this page</p>
+            <ol>
+              {toc.map((h, i) => (
+                <li>
+                  <a href={`#${h.slug}`} data-toc={h.slug}>
+                    <span class="mono pixel">{String(i + 1).padStart(2, '0')}</span>
+                    <span data-dust>{h.text}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )
+      }
+
+      <div class="prose" data-prose>
+        <Content />
+      </div>
+
+      {
+        gallery && gallery.length > 0 && (
+          <div class="gallery">
+            {gallery.map((g) => (
+              <figure class="gallery__item">
+                <button type="button" class="gallery__btn" aria-expanded="false" aria-label={`Enlarge: ${g.alt}`}>
+                  <Image class="develop" src={g.src} alt={g.alt} widths={[720, 1440, 2160]} sizes="100vw" />
+                </button>
+                {g.caption && <figcaption class="mono muted">{g.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    {
+      next.id !== project.id && (
+        <nav class="next section" aria-label="Next project">
+          <div class="bar mono">
+            <p>Next project</p>
+            <p class="muted">{next.data.kind}</p>
+          </div>
+          <a class="next__link title indent-2" href={`/projects/${next.id}`}>
+            <span data-dust>{next.data.title}</span> <span class="next__arrow" aria-hidden="true">→</span>
+          </a>
+        </nav>
+      )
+    }
+  </article>
+</Base>
+
+<script>
+  // Highlight the section you're reading in the contents list.
+  const links = new Map(
+    [...document.querySelectorAll<HTMLAnchorElement>('[data-toc]')].map((a) => [a.dataset.toc!, a]),
+  );
+  if (links.size) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          links.forEach((a) => a.removeAttribute('aria-current'));
+          links.get(e.target.id)?.setAttribute('aria-current', 'true');
+        }
+      },
+      { rootMargin: '-20% 0px -70% 0px' },
+    );
+    links.forEach((_, id) => {
+      const h = document.getElementById(id);
+      if (h) io.observe(h);
+    });
+  }
+
+  // Gallery: click an image to jump from column width to full width.
+  document.querySelectorAll<HTMLButtonElement>('.gallery__btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.gallery__item')!;
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      const run = () => {
+        item.classList.toggle('is-full', open);
+        btn.setAttribute('aria-expanded', String(open));
+      };
+      if (document.startViewTransition) document.startViewTransition(run);
+      else run();
+    });
+  });
+</script>
+
+<style>
+  .crumbs {
+    padding-top: 1rem;
+  }
+
+  .head {
+    padding-top: clamp(2.5rem, 8vw, 6rem);
+  }
+
+  .head__lede {
+    max-width: 34ch;
+    margin-top: 1.25rem;
+  }
+
+  .intro {
+    display: grid;
+    gap: 2rem var(--gap);
+    margin-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .intro__spec dt {
+    color: var(--muted);
+  }
+
+  .intro__specimen {
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+  }
+
+  .intro__cover {
+    overflow: hidden;
+  }
+
+  .intro__cover :global(img) {
+    border-radius: 10px;
+  }
+
+  .intro__figure {
+    max-width: 48rem;
+  }
+
+  .intro__figure figcaption {
+    margin-top: 0.75rem;
+  }
+
+  @media (min-width: 64rem) {
+    .intro {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      align-items: start;
+    }
+
+    .intro__spec {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem var(--gap);
+    margin-top: var(--section);
+  }
+
+  @media (min-width: 64rem) {
+    .body {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: calc(var(--chrome) + 1.5rem);
+    }
+  }
+
+  .toc__label {
+    padding-bottom: 0.4rem;
+  }
+
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc a {
+    display: flex;
+    gap: 0.75rem;
+    padding-block: 0.3rem;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .toc a > .mono {
+    padding-top: 0.1em;
+  }
+
+  .toc a:hover,
+  .toc a[aria-current] {
+    color: var(--ink);
+  }
+
+  .toc a[aria-current] > .mono {
+    color: var(--ink);
+  }
+
+  .prose :global(h2) {
+    scroll-margin-top: calc(var(--chrome) + 1.5rem);
+  }
+
+  .gallery {
+    display: grid;
+    gap: 2rem var(--gap);
+    grid-column: 1 / -1;
+  }
+
+  @media (min-width: 64rem) {
+    .gallery {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    }
+
+    .gallery__item {
+      grid-column: 2;
+    }
+
+    .gallery__item.is-full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .gallery__btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: none;
+    box-shadow: 0 0 0 1px rgb(20 20 15 / 0.06), 0 24px 44px -20px rgb(20 20 15 / 0.16);
+    cursor: zoom-in;
+  }
+
+  .gallery__item.is-full .gallery__btn {
+    cursor: zoom-out;
+  }
+
+  .gallery figcaption {
+    margin-top: 0.5rem;
+  }
+
+  .next__link {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.3em;
+    margin-top: 1.5rem;
+    text-decoration: none;
+  }
+
+  .next__arrow {
+    display: inline-block;
+    transition: translate 0.4s var(--ease);
+  }
+
+  .next__link:hover .next__arrow {
+    translate: 0.2em 0;
+  }
+</style>
