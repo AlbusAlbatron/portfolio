@@ -1,6 +1,6 @@
 export const site = {
   name: 'Alby McNamara',
-  role: 'Software Engineering Student',
+  role: 'Immersive Software Engineering Student',
   description:
     'Alby McNamara is a first-year Immersive Software Engineering student at the University of Limerick.',
   /** Availability line shown on the home page. */

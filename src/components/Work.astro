@@ -13,8 +13,8 @@ const no = (i: number) => String(i + 1).padStart(2, '0');
 ---
 
 <section class="work" data-work aria-labelledby="work-title">
-  <div class="bar indent-2">
-    <h2 id="work-title" class="bar__label">
+  <div class="band" style="--indent: 16.667">
+    <h2 id="work-title" class="band__label">
       <span>{heading}</span><span class="count">({projects.length})</span>
     </h2>
     <div class="toggle" role="group" aria-label="View" data-work-controls hidden>
@@ -33,7 +33,7 @@ const no = (i: number) => String(i + 1).padStart(2, '0');
               <Specimen id={p.id} />
             </span>
             <span class="card__meta">
-              <span class="card__no pixel muted">{no(i)}</span>
+              <span class="card__no num muted">{no(i)}</span>
               <span class="card__text">
                 <span class="card__title display" data-dust>
                   {p.data.title}
@@ -54,14 +54,9 @@ const no = (i: number) => String(i + 1).padStart(2, '0');
       projects.map((p, i) => (
         <li class="row" data-id={p.id}>
           <a class="row__link" href={`/projects/${p.id}`}>
-            <span class="row__no pixel muted">{no(i)}</span>
+            <span class="row__no num muted">{no(i)}</span>
             <span class="row__title display" data-dust>
-              <span class="sr-only">{p.data.title}</span>
-              <span class="ripple" aria-hidden="true">
-                {[...p.data.title].map((ch, j) => (
-                  <span style={`--i: ${j}`}>{ch === ' ' ? ' ' : ch}</span>
-                ))}
-              </span>
+              {p.data.title}
             </span>
             <span class="row__summary muted">{p.data.summary}</span>
             <span class="row__tech mono muted">{p.data.tech.join(', ')}</span>
@@ -209,23 +204,6 @@ const no = (i: number) => String(i + 1).padStart(2, '0');
 
     .row__summary {
       max-width: 28rem;
-    }
-  }
-
-  .ripple span {
-    display: inline-block;
-    transition: translate 0.45s var(--ease) calc(var(--i) * 22ms);
-  }
-
-  @media (hover: hover) {
-    .row__link:hover .ripple span,
-    .row__link:focus-visible .ripple span {
-      translate: 0 -0.12em;
-    }
-
-    .row__link:hover .ripple span:nth-child(odd),
-    .row__link:focus-visible .ripple span:nth-child(odd) {
-      translate: 0 0.06em;
     }
   }
 

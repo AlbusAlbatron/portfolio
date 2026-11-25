@@ -21,21 +21,22 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
   - Nav letters squeeze/stretch with scroll velocity via Archivo's `wdth` axis (muda.co), in `scripts/chrome.ts`.
   - Intro statements type themselves out (`Typed.astro`, CSS only) (typohypergraphicobject). No italics.
   - Dust (realistic, seamless disintegration): hovering a `[data-dust]` element makes its letters crumble into fine
-    dust with no blocks or steps. Every pixel gets its own release time: a coarse cell grid gives distance-from-edge
-    (BFS, outline first), which is bilinearly interpolated per pixel plus organic value noise (a pre-baked 256px
-    periodic tile, built when idle) and per-pixel scatter; pixels are bucketed by time (counting sort) and erased
-    exactly on time (`putImageData` of the dirty rect). Grains (mostly 0.5–2px, round when bigger, five tones from
-    the text colour toward the background, a few twinkling) are born at the pixels that vanish and ride a slow
-    curl-noise air current with a light up-right breeze; no gravity. Leaving plays it back (grains fly home, pixels
-    return latest-first). Setup is async and time-sliced (`SLICE_MS`), cancelled if the pointer leaves first, so
-    hover never stalls the page. `scripts/dust.ts` draws the text per character at its DOM position (Range rects,
-    honouring `text-transform`, baselines snapped to device pixels, bitmap origin on a whole device pixel). The
-    hand-over must stay seamless: the real letters are hidden (`-webkit-text-fill-color: transparent`, with
-    `text-decoration-color` pinned so underlines stay) on the same frame the copy first paints, and on reassembly
-    the copy is not drawn on the frame the real text returns. Draws on one fixed viewport canvas shown
-    only while animating. Used on nav, header name, page titles (`.dust-title`), project titles, Overview/footer
-    links and the footer name. Short display text and links only, never body copy. Alby rejected SVG "fuzz/ink",
-    square particles, soft blobs, fast specks and cell-by-cell (square) erasing.
+    dust. **The real text is never hidden or replaced**: a "cover" canvas paints the background colour (first opaque
+    ancestor background) over the text pixel by pixel as it erodes, so the start and end are pixel-identical to the
+    page (an earlier canvas-copy approach made text look slightly smaller/shifted because canvas can't match the
+    browser's text rendering). The text is drawn to an offscreen canvas only as an ink map (per character at its DOM
+    position via Range rects, honouring `text-transform`). Cover pixels = ink plus a ~1 CSS px ring, each with its
+    own release time (outline first via a BFS distance field on a coarse cell grid, bilinearly interpolated, plus a
+    pre-baked periodic noise tile and per-pixel scatter; negative times are scattered, never lumped at 0). Pixels are
+    bucketed by time and painted as 1x1 device-pixel squares on a GPU-backed canvas, only the ones due each frame.
+    Grains (≤ `GRAIN_BUDGET`, mostly 0.5–2px squares, bigger flakes round, five tones, a few twinkling) are born at
+    vanishing ink pixels and ride a slow curl-noise air current; no gravity. Leaving fades the cover out while grains
+    fly home and fade (one draw per frame, so big text doesn't lag). Very large text is scheduled at a coarser
+    scale (`WORK_BUDGET`) and setup runs as a few linear passes, so it starts quickly. Setup is async, time-sliced (`SLICE_MS`, ink read in strips) and cancellable. One fixed
+    viewport canvas, shown only while animating, sits under the grain overlay. `[data-dust]` elements must not move
+    or reflow on hover (the list-row letter ripple was removed for this). Used on nav, header name, page titles
+    (`.dust-title`), project titles, Overview/footer links and the footer name; never body copy. Alby rejected SVG
+    "fuzz/ink", square particles, soft blobs, fast specks, square-cell erasing and any visible hand-over.
   - Cross-document view transitions: the old page steps back, the new one rises (age-hh). In-page swaps add
     `html.vt-swap` for a plain fade.
   - Multi-column "Overview" on home (tiger.exposed / simondenny); spec strips and reading time on project pages
@@ -49,6 +50,11 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
   (hangs into the page margin), `.drop-1/2`, `.lift-1` in `global.css`, plus per-component staggers (home notes and
   Overview columns, Work cards, CV rows alternate, footer name runs off the right edge). Keep offsets different
   from each other and check nothing overflows at 400px.
+- Grouping under offsets: section headings are slim charcoal bars (`.band`, `--band` #34342f, Tanker title + mono
+  count, off-white text) spanning their whole section (Alby found solid black too loud); the brutalist offset lives *inside* the bar via inline `--indent` (percent,
+  desktop only). Smaller groups that are offset or staggered get a thin black label strip (`.band--mini`): home
+  "At a glance" notes and each Overview column, project "Details" and "On this page", About "Quick facts". CV
+  sheet headers are bands. Bars print as ink text over a rule. `.bar` is only the small breadcrumb row.
 - Avoid looking like bureau.cool (grey, pill buttons, stacked serif + mono caps headings) or a generic template.
 - Copy is in Alby's voice, first person, plain and natural. No taglines, jokes or inflated claims.
 
@@ -67,12 +73,13 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
     Bodoni Moda hard to read).
   - Archivo variable (`wdth.css`, `--sans`): body text and the stretchy nav.
   - IBM Plex Mono 500 (`--mono`): `.label` / `.bar__label` / `.spec dt` (uppercase, tracked), data and code.
-  - Silkscreen (`--pixel`): `.pixel` small numbers.
+  - Small numbers (indexes, counts, the clock): `.num` = IBM Plex Mono with tabular figures (Alby disliked the
+    pixel font that was here).
   - Google fonts come from @fontsource packages (npm, not committed). `@fontsource-variable/*` imports omit `.css`
     when the package's exports add it (Big Shoulders is `@import`ed at the top of `global.css` from its package root: TypeScript rejects its extension-less path).
 - `src/styles/global.css` tokens: `--bg`, `--surface`, `--ink`, `--muted`, `--hair`, the font tokens above,
   `--pad`, `--gap`, `--section`, `--chrome`. Classes: `.statement`, `.title`, `.display`, `.lede`, `.label`, `.mono`,
-  `.pixel`, `.small`, `.muted`, `.bar`, `.spec`, `.tile` / `.tile__sheen`, `.link`, `.toggle`, `.prose`, `.develop`,
+  `.num`, `.small`, `.muted`, `.bar` (breadcrumbs), `.band` / `.band__label` / `.band--mini`, `.spec`, `.tile` / `.tile__sheen`, `.link`, `.toggle`, `.prose`, `.develop`,
   offset utilities.
 - Code blocks are dark (`github-dark`, `#0e0e0e`).
 - Grain: a static `body::after` noise layer (SVG feTurbulence data URI, ~4.5% opacity) over everything, barely

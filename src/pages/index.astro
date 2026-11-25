@@ -54,18 +54,21 @@ const person = {
       <h1 class="sr-only">{site.name}, {site.role}</h1>
       <Typed
         class="statement hero__text indent-1"
-        text="I'm Alby, a first-year software engineering student at the University of Limerick. I mostly work in Java, Python and C."
+        text="I'm Alby, a first-year Immersive Software Engineering student at the University of Limerick. I mostly work in Java, Python and C."
       />
-      <dl class="spec hero__notes small indent-4">
+      <div class="hero__notes indent-4">
+      <p class="band--mini">At a glance</p>
+      <dl class="spec small">
         {
           notes.map((n, i) => (
             <div>
-              <dt class="label"><span class="pixel">({String(i + 1).padStart(2, '0')})</span> {n.label}</dt>
+              <dt class="label"><span class="num">({String(i + 1).padStart(2, '0')})</span> {n.label}</dt>
               <dd>{n.value}</dd>
             </div>
           ))
         }
       </dl>
+      </div>
     </section>
 
     <div class="section">
@@ -73,14 +76,14 @@ const person = {
     </div>
 
     <section class="section" aria-labelledby="everything">
-      <div class="bar indent-6">
-        <h2 id="everything" class="bar__label"><span>Overview</span></h2>
+      <div class="band" style="--indent: 50">
+        <h2 id="everything" class="band__label"><span>Overview</span></h2>
       </div>
       <div class="columns small">
         {
           columns.map((col) => (
             <div>
-              <h3 class="label muted columns__title">{col.title}</h3>
+              <h3 class="band--mini columns__title">{col.title}</h3>
               <ul>
                 {col.items.map((item) =>
                   item.href ? (
@@ -150,7 +153,7 @@ const person = {
   }
 
   .columns__title {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.3rem;
   }
 
   .columns ul {

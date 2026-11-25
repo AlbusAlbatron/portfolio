@@ -54,7 +54,7 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
             sections.map((s, i) => (
               <li>
                 <a href={`#${s.id}`}>
-                  <span class="pixel muted">{no(i)}</span> {s.title}
+                  <span class="num muted">{no(i)}</span> {s.title}
                 </a>
               </li>
             ))
@@ -64,8 +64,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </header>
 
     <section class="sheet" style={`--shift: ${meta.profile.shift}`} aria-labelledby="profile">
-      <div class="bar sheet__head">
-        <h2 id="profile" class="bar__label"><span>{meta.profile.title}</span><span class="count">{meta.profile.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="profile" class="band__label"><span>{meta.profile.title}</span><span class="count">{meta.profile.no}</span></h2>
       </div>
       <div class="line">
         <span></span>
@@ -74,8 +74,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </section>
 
     <section class="sheet" style={`--shift: ${meta.education.shift}`} aria-labelledby="education">
-      <div class="bar sheet__head">
-        <h2 id="education" class="bar__label"><span>{meta.education.title}</span><span class="count">{meta.education.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="education" class="band__label"><span>{meta.education.title}</span><span class="count">{meta.education.no}</span></h2>
       </div>
       {
         education.map((e) => (
@@ -98,8 +98,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </section>
 
     <section class="sheet" style={`--shift: ${meta.experience.shift}`} aria-labelledby="experience">
-      <div class="bar sheet__head">
-        <h2 id="experience" class="bar__label"><span>{meta.experience.title}</span><span class="count">{meta.experience.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="experience" class="band__label"><span>{meta.experience.title}</span><span class="count">{meta.experience.no}</span></h2>
       </div>
       {
         experience.map((e) => (
@@ -129,8 +129,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </section>
 
     <section class="sheet" style={`--shift: ${meta.skills.shift}`} aria-labelledby="skills">
-      <div class="bar sheet__head">
-        <h2 id="skills" class="bar__label"><span>{meta.skills.title}</span><span class="count">{meta.skills.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="skills" class="band__label"><span>{meta.skills.title}</span><span class="count">{meta.skills.no}</span></h2>
       </div>
       <dl class="pairs">
         {
@@ -145,8 +145,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </section>
 
     <section class="sheet" style={`--shift: ${meta.awards.shift}`} aria-labelledby="awards">
-      <div class="bar sheet__head">
-        <h2 id="awards" class="bar__label"><span>{meta.awards.title}</span><span class="count">{meta.awards.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="awards" class="band__label"><span>{meta.awards.title}</span><span class="count">{meta.awards.no}</span></h2>
       </div>
       <dl class="pairs">
         {
@@ -161,8 +161,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </section>
 
     <section class="sheet" style={`--shift: ${meta.activities.shift}`} aria-labelledby="activities">
-      <div class="bar sheet__head">
-        <h2 id="activities" class="bar__label"><span>{meta.activities.title}</span><span class="count">{meta.activities.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="activities" class="band__label"><span>{meta.activities.title}</span><span class="count">{meta.activities.no}</span></h2>
       </div>
       <dl class="pairs">
         {
@@ -177,8 +177,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </section>
 
     <section class="sheet" style={`--shift: ${meta.interests.shift}`} aria-labelledby="interests">
-      <div class="bar sheet__head">
-        <h2 id="interests" class="bar__label"><span>{meta.interests.title}</span><span class="count">{meta.interests.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="interests" class="band__label"><span>{meta.interests.title}</span><span class="count">{meta.interests.no}</span></h2>
       </div>
       <div class="line">
         <span></span>
@@ -187,8 +187,8 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
     </section>
 
     <section class="sheet" style={`--shift: ${meta.references.shift}`} aria-labelledby="references">
-      <div class="bar sheet__head">
-        <h2 id="references" class="bar__label"><span>{meta.references.title}</span><span class="count">{meta.references.no}</span></h2>
+      <div class="band sheet__head">
+        <h2 id="references" class="band__label"><span>{meta.references.title}</span><span class="count">{meta.references.no}</span></h2>
       </div>
       <div class="line">
         <span></span>
@@ -247,8 +247,7 @@ const meta = Object.fromEntries(sections.map((s, i) => [s.id, { ...s, no: no(i) 
   }
 
   .sheet__head {
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid var(--hair);
+    margin-bottom: 0.75rem;
   }
 
   /* One grid for every row in every sheet: meta column (dates / labels) + main column. */

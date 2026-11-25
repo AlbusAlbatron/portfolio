@@ -2,14 +2,16 @@
 // text gets its own moment to go: earliest on each letter's outline, working inward, with an organic noise pattern
 // on top, so the letters thin out grain by grain with no blocks or steps. Grains are born exactly where pixels
 // vanish (ink turns straight into dust) and ride a slow, swirling air current. No gravity. Leaving plays it back:
-// grains fly home and the pixels return in reverse order, then the real text is shown again.
+// grains fly home and the pixels come back in reverse order.
 //
-// How: the element's characters are drawn onto an offscreen canvas at their exact DOM positions (one Range rect per
-// character, so letter-spacing, wrapping and text-transform match) and the real letters are hidden (transparent
-// fill, so underlines stay) on the same frame the copy first paints, so the hand-over is seamless. A coarse cell grid
-// gives each letter's distance-from-edge (BFS); per-pixel release times are bilinearly interpolated from it plus
-// value noise, then bucketed by time (counting sort) so each frame only touches pixels whose time has come. Grains
-// are batched by tone and opacity and drawn on one fixed, viewport-sized canvas shown only while animating.
+// How: the real text is never hidden or replaced, so the start and end of the effect are pixel-identical to the
+// page. The characters are drawn onto an offscreen canvas at their DOM positions (one Range rect per character) only
+// to get an ink map: which pixels exist, when each one goes and where grains start. What is shown is a "cover"
+// layer that paints the background colour over each pixel (and a ~1px margin around the ink) as its time comes.
+// A coarse cell grid gives each letter's distance-from-edge (BFS); per-pixel release times are bilinearly
+// interpolated from it plus value noise, then bucketed by time (counting sort) so each frame only touches pixels
+// whose time has come. Grains are batched by tone and opacity and drawn on one fixed, viewport-sized canvas shown
+// only while animating. Elements with [data-dust] must not move on hover, or the cover would drift off the text.
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const hover = window.matchMedia('(hover: hover)').matches;
@@ -27,7 +29,7 @@ const LIFE_SPREAD = 2600;
 /** Reassembly time after the pointer leaves (ms). */
 const RETURN_MS = 620;
 /** Upper bound on grains per element, so huge text stays smooth. */
-const GRAIN_BUDGET = 9000;
+const GRAIN_BUDGET = 7000;
 /** Upper bound on cells used for the distance-from-edge field. */
 const CELL_BUDGET = 6000;
 
@@ -55,13 +57,14 @@ interface Dust {
   el: HTMLElement;
   bitmap: HTMLCanvasElement;
   bctx: CanvasRenderingContext2D;
-  image: ImageData;
-  /** Ink pixel indices (into the bitmap) ordered by release time, with bucket start offsets. */
+  /** The cover layer (`bitmap`) is GPU-backed and painted one device pixel at a time; this is its fill. */
+  coverCss: string;
+  /** Background colour painted over eroded pixels. */
+  cover: [number, number, number];
+  /** Cover pixel indices (into the bitmap) ordered by release time, with bucket start offsets. */
   order: Uint32Array;
   bucketStart: Uint32Array;
-  /** Original alpha per bitmap pixel, for playing the dissolve back. */
-  alpha0: Uint8ClampedArray;
-  /** Buckets [0, shown) have been erased. */
+  /** Buckets [0, shown) have been covered. */
   shown: number;
   grains: Grain[];
   pg: number; // grains [0, pg) are loose
@@ -72,8 +75,7 @@ interface Dust {
   last: number;
   mode: 'dissolve' | 'return';
   returnStart: number;
-  returnFrom: number; // bucket count erased when the pointer left
-  painted: boolean; // has the canvas copy been shown (and the real text hidden) yet?
+  returnFrom: number; // bucket count covered when the pointer left
   offX: number; // bitmap origin relative to the element's box
   offY: number;
 }
@@ -226,8 +228,8 @@ if (!reduced && hover) {
     }
     if (!glyphs.length) return null;
     const pad = 4;
-    // Put the bitmap's origin on a whole device pixel of the screen (offsets may be fractional relative to the
-    // element), so the copy is drawn without resampling and is pixel-identical to the real text at hand-over.
+    // Put the canvas origin on a whole device pixel of the screen (offsets may be fractional relative to the
+    // element), so the cover is drawn without resampling and its pixels land exactly on the text's.
     const offX = Math.floor((box.left + minX - pad) * dpr) / dpr - box.left;
     const offY = Math.floor((box.top + minY - pad) * dpr) / dpr - box.top;
     const w = Math.ceil(maxX - offX + pad);
@@ -254,6 +256,15 @@ if (!reduced && hover) {
   };
 
 
+  // The colour behind the text: the first opaque background up the tree, else the page's.
+  const backgroundOf = (el: HTMLElement): [number, number, number] => {
+    for (let n: HTMLElement | null = el; n; n = n.parentElement) {
+      const m = getComputedStyle(n).backgroundColor.match(/[\d.]+/g);
+      if (m && (m.length < 4 || Number(m[3]) > 0.99)) return [Number(m[0]), Number(m[1]), Number(m[2])];
+    }
+    return [bgRgb[0], bgRgb[1], bgRgb[2]];
+  };
+
   // Setup runs in slices of a few ms across frames (the real text stays visible meanwhile), so hovering never
   // stalls the page. `token.cancelled` aborts it if the pointer leaves first.
   interface Token {
@@ -273,8 +284,16 @@ if (!reduced && hover) {
     const { bitmap, bctx, offX, offY, w, h, color, size } = r;
     const W = bitmap.width;
     const H = bitmap.height;
-    const image = bctx.getImageData(0, 0, W, H);
-    const px = image.data;
+    // Read the ink back in horizontal strips with a pause between them, so a big element (the footer name at 2x
+    // density) never blocks a frame with one huge read.
+    await breathe();
+    const px = new Uint8ClampedArray(W * H * 4);
+    const STRIP = 48;
+    for (let y = 0; y < H; y += STRIP) {
+      const rows = Math.min(STRIP, H - y);
+      px.set(bctx.getImageData(0, y, W, rows).data, y * W * 4);
+      await breathe();
+    }
     const speed = Math.max(0.6, Math.min(2, size / 60));
 
     // 1. A coarse cell grid (CSS px) for each letter's distance from its edge.
@@ -290,7 +309,7 @@ if (!reduced && hover) {
       for (let x = 0; x < W; x++) {
         if (px[pxBase + x * 4] > 5) ink[rowBase + colOf[x]] = 1;
       }
-      if ((y & 31) === 0) await breathe();
+      if ((y & 7) === 0) await breathe();
     }
     const depth = new Int32Array(cols * rows);
     const queue = new Int32Array(cols * rows);
@@ -333,9 +352,49 @@ if (!reduced && hover) {
     const tAt = (col: number, row: number) =>
       col < 0 || row < 0 || col >= cols || row >= rows ? 0 : cellT[row * cols + col];
 
-    // 2. A release time for every inked pixel: interpolated (no cell edges), plus noise and grain.
+    // 2. Which pixels the cover will paint: the ink plus a ~1 CSS px ring around it, so differences between the
+    //    browser's text rendering and this ink map can never leave a fringe (separable dilation of the ink mask).
+    const reach = Math.ceil(dpr);
+    const inkMask = new Uint8Array(W * H);
     let count = 0;
-    for (let i = 0; i < W * H; i++) if (px[i * 4 + 3]) count++;
+    for (let i = 0; i < W * H; i++) {
+      if (px[i * 4 + 3]) {
+        inkMask[i] = 1;
+        count++;
+      }
+    }
+    const rowMask = new Uint8Array(W * H);
+    for (let y = 0; y < H; y++) {
+      const base = y * W;
+      for (let x = 0; x < W; x++) {
+        for (let dx = Math.max(0, x - reach); dx <= Math.min(W - 1, x + reach); dx++) {
+          if (inkMask[base + dx]) {
+            rowMask[base + x] = 1;
+            break;
+          }
+        }
+      }
+      if ((y & 7) === 0) await breathe();
+    }
+    const member = new Uint8Array(W * H);
+    let coverCount = 0;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        for (let dy = Math.max(0, y - reach); dy <= Math.min(H - 1, y + reach); dy++) {
+          if (rowMask[dy * W + x]) {
+            member[y * W + x] = 1;
+            coverCount++;
+            break;
+          }
+        }
+      }
+      if ((y & 7) === 0) await breathe();
+    }
+
+    // 3. A release time for every cover pixel, ink and ring alike: interpolated from the cell field (no cell
+    //    edges), plus organic noise and per-pixel grain. Giving the ring its own times (rather than its
+    //    neighbours' earliest) means the real text's outline erodes gradually instead of thinning in one frame.
+    const tCover = new Float32Array(W * H);
     const idx = new Uint32Array(count);
     const rel = new Float32Array(count);
     let maxT = 0;
@@ -345,13 +404,13 @@ if (!reduced && hover) {
     const toy = (rand() * TILE) | 0;
     for (let y = 0; y < H; y++) {
       const cy = (y + 0.5) / dpr;
-      const trow = ((((cy | 0) + toy) % TILE) * TILE);
+      const trow = (((cy | 0) + toy) % TILE) * TILE;
       const v = cy / step - 0.5;
       const r0 = Math.floor(v);
       const fv = v - r0;
       for (let x = 0; x < W; x++) {
         const i = y * W + x;
-        if (!px[i * 4 + 3]) continue;
+        if (!member[i]) continue;
         const cx = (x + 0.5) / dpr;
         const u = cx / step - 0.5;
         const c0 = Math.floor(u);
@@ -360,29 +419,32 @@ if (!reduced && hover) {
         const bot = tAt(c0, r0 + 1) + (tAt(c0 + 1, r0 + 1) - tAt(c0, r0 + 1)) * fu;
         const base = top + (bot - top) * fv;
         const organic = noise[trow + (((cx | 0) + tox) % TILE)];
-        const t = Math.max(0, base + (organic - 0.5) * NOISE_MS + rand() * GRAIN_MS);
-        idx[n] = i;
-        rel[n] = t;
+        // Times that come out negative are scattered over the first moment rather than piled up at zero, so no
+        // lump of pixels goes (or comes back) all at once.
+        let t = base + (organic - 0.5) * NOISE_MS + rand() * GRAIN_MS;
+        if (t < 0) t = rand() * GRAIN_MS;
+        tCover[i] = t;
         if (t > maxT) maxT = t;
-        n++;
+        if (inkMask[i]) {
+          idx[n] = i;
+          rel[n] = t;
+          n++;
+        }
       }
-      if ((y & 15) === 0) await breathe();
+      if ((y & 7) === 0) await breathe();
     }
 
-    await breathe();
-    // 3. Bucket pixels by release time (counting sort), so each frame touches only what's due.
+    // 4. Bucket cover pixels by release time (counting sort), so each frame touches only what's due.
     const buckets = Math.floor(maxT / BUCKET_MS) + 1;
     const bucketStart = new Uint32Array(buckets + 1);
-    for (let k = 0; k < count; k++) bucketStart[Math.floor(rel[k] / BUCKET_MS) + 1]++;
+    for (let i = 0; i < W * H; i++) if (member[i]) bucketStart[Math.floor(tCover[i] / BUCKET_MS) + 1]++;
     for (let b = 0; b < buckets; b++) bucketStart[b + 1] += bucketStart[b];
     const fillPos = bucketStart.slice(0, buckets);
-    const order = new Uint32Array(count);
-    for (let k = 0; k < count; k++) order[fillPos[Math.floor(rel[k] / BUCKET_MS)]++] = idx[k];
-    const alpha0 = new Uint8ClampedArray(W * H);
-    for (let k = 0; k < count; k++) alpha0[idx[k]] = px[idx[k] * 4 + 3];
+    const order = new Uint32Array(coverCount);
+    for (let i = 0; i < W * H; i++) if (member[i]) order[fillPos[Math.floor(tCover[i] / BUCKET_MS)]++] = i;
 
     await breathe();
-    // 4. Grains: sampled from the inked pixels, born at the pixel and the moment it vanishes.
+    // 5. Grains: sampled from the inked pixels, born at the pixel and the moment it vanishes.
     const cxw = offX + w / 2;
     const cyw = offY + h / 2;
     const p = Math.min(1, GRAIN_BUDGET / Math.max(count, 1));
@@ -441,14 +503,21 @@ if (!reduced && hover) {
     }
     grains.sort((a, b) => a.release - b.release);
 
+    // The ink map has done its job. The cover gets its own canvas without `willReadFrequently`, so it stays on the
+    // GPU and drawing it each frame doesn't re-upload the whole image.
+    const coverCanvas = document.createElement('canvas');
+    coverCanvas.width = W;
+    coverCanvas.height = H;
+    const coverCtx = coverCanvas.getContext('2d')!;
+    const cover = backgroundOf(el);
     return {
       el,
-      bitmap,
-      bctx,
-      image,
+      bitmap: coverCanvas,
+      bctx: coverCtx,
+      coverCss: `rgb(${cover[0]},${cover[1]},${cover[2]})`,
+      cover,
       order,
       bucketStart,
-      alpha0,
       shown: 0,
       grains,
       pg: 0,
@@ -460,41 +529,40 @@ if (!reduced && hover) {
       mode: 'dissolve',
       returnStart: 0,
       returnFrom: 0,
-      painted: false,
       offX,
       offY,
     };
   };
 
   const restore = (d: Dust) => {
-    d.el.style.removeProperty('-webkit-text-fill-color');
-    d.el.style.removeProperty('text-decoration-color');
     active.delete(d.el);
   };
 
   const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
-  // Set the alpha of every pixel in buckets [from, to) — 0 to erase, the original to bring it back — and upload
-  // only the rectangle that changed.
-  const touch = (d: Dust, from: number, to: number, erase: boolean) => {
+  // Cover every pixel in buckets [from, to) with the background colour (or uncover it again on the way back). Only
+  // the pixels due this frame are drawn, as 1x1 device-pixel squares in one path, so the cost follows how much
+  // changes rather than the size of the text.
+  const touch = (d: Dust, from: number, to: number, cover: boolean) => {
+    const start = d.bucketStart[from];
+    const end = d.bucketStart[to];
+    if (end <= start) return;
     const W = d.bitmap.width;
-    const data = d.image.data;
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -1;
-    let maxY = -1;
-    for (let k = d.bucketStart[from]; k < d.bucketStart[to]; k++) {
+    const ctx = d.bctx;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = cover ? 'source-over' : 'destination-out';
+    ctx.fillStyle = cover ? d.coverCss : '#000';
+    ctx.beginPath();
+    for (let k = start; k < end; k++) {
       const i = d.order[k];
-      data[i * 4 + 3] = erase ? 0 : d.alpha0[i];
       const x = i % W;
-      const y = (i - x) / W;
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
+      ctx.rect(x, (i - x) / W, 1, 1);
     }
-    if (maxX >= 0) d.bctx.putImageData(d.image, 0, 0, minX, minY, maxX - minX + 1, maxY - minY + 1);
+    ctx.fill();
+    ctx.restore();
   };
+
 
   // A slow, swirling, divergence-free air current (curl of a moving sum of waves), in px per ms.
   const flow = (x: number, y: number, t: number, seed: number, out: { x: number; y: number }) => {
@@ -511,8 +579,7 @@ if (!reduced && hover) {
   };
   const field = { x: 0, y: 0 };
 
-  // Grains are drawn in batches by tone and opacity: one path fill per bucket. Fine grains are tiny rects (they read
-  // as points); anything bigger is drawn round.
+  // Grains are drawn in batches by tone and opacity: one path fill per bucket.
   const ALPHA_STEPS = 5;
   const groups: number[][] = Array.from({ length: 5 * ALPHA_STEPS }, () => []);
 
@@ -535,7 +602,9 @@ if (!reduced && hover) {
         const g = list[i];
         const x = box.left + g.x;
         const y = box.top + g.y;
-        if (g.size <= 1.2) {
+        // Tiny grains are drawn as squares (at 1-2px a square and a circle look the same, and squares are much
+        // cheaper to rasterise); only the bigger flakes are drawn round.
+        if (g.size <= 1.8) {
           sctx.rect(x, y, g.size, g.size);
         } else {
           const r = g.size / 2;
@@ -556,7 +625,7 @@ if (!reduced && hover) {
     return a;
   };
 
-  // Draw the remaining-text bitmap snapped to whole device pixels (no resampling blur).
+  // Draw the cover layer snapped to whole device pixels (no resampling, so its edges sit exactly on the text's).
   const drawBitmap = (d: Dust, box: DOMRect) => {
     const x = Math.round((box.left + d.offX) * dpr) / dpr;
     const y = Math.round((box.top + d.offY) * dpr) / dpr;
@@ -569,30 +638,19 @@ if (!reduced && hover) {
 
     for (const d of active.values()) {
       const box = d.el.getBoundingClientRect();
-      // The dissolve's clock starts on the frame the canvas copy first appears.
-      if (!d.painted) d.start = d.last = now;
       const t = now - d.start;
       const dt = Math.min(48, now - d.last);
       d.last = now;
       const buckets = d.bucketStart.length - 1;
 
       if (d.mode === 'dissolve') {
-        // Erase every pixel whose time has come.
+        // Cover every pixel whose time has come.
         const due = Math.min(buckets, Math.floor(t / BUCKET_MS) + 1);
         if (due > d.shown) {
           touch(d, d.shown, due, true);
           d.shown = due;
         }
         drawBitmap(d, box);
-        // Hand-over: hide the real text in the same frame the identical canvas copy first paints, so there is no
-        // empty frame (flash) between them.
-        if (!d.painted) {
-          d.painted = true;
-          // Only the letters are hidden (fill), so underlines and other decoration stay exactly as they are.
-          // Chrome paints decorations in the fill colour unless told otherwise, so pin the underline's colour first.
-          d.el.style.setProperty('text-decoration-color', getComputedStyle(d.el).textDecorationColor);
-          d.el.style.setProperty('-webkit-text-fill-color', 'transparent');
-        }
 
         // Grains: loosen on time, then ride the air current.
         const { grains } = d;
@@ -618,12 +676,12 @@ if (!reduced && hover) {
         // Play it back: grains fly home while pixels return, latest-gone first.
         const k = Math.min(1, (now - d.returnStart) / RETURN_MS);
         if (k >= 1) {
-          // Hand back to the real text without drawing the copy this frame, so the two never overlap.
+          // Fully uncovered: the real text was there all along.
           restore(d);
           continue;
         }
         const e = ease(k);
-        const keep = Math.ceil(d.returnFrom * (1 - e));
+        const keep = Math.round(d.returnFrom * (1 - e));
         if (keep < d.shown) {
           touch(d, keep, d.shown, false);
           d.shown = keep;
@@ -665,7 +723,7 @@ if (!reduced && hover) {
     make(el, token)
       .then((d) => {
         if (!d || token.cancelled) return;
-        // The real text stays visible until the first frame paints the copy (see frame()).
+        d.start = d.last = performance.now();
         active.set(el, d);
         run();
       })

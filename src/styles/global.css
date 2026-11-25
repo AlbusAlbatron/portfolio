@@ -11,7 +11,7 @@
   --serif     Newsreader (optical sizes): statements and ledes, a sturdy, legible newspaper serif
   --sans      Archivo (variable weight + width): body text and the stretchy nav
   --mono      IBM Plex Mono: labels (uppercase), data, code
-  --pixel     Silkscreen: small numbers, counts, the clock
+  (small numbers, counts and the clock use Plex Mono with tabular figures: .num)
 */
 :root {
   --bg: #f3f3f0;
@@ -19,6 +19,7 @@
   --ink: #0e0e0e;
   --muted: #64645e;
   --hair: #d3d3cc;
+  --band: #34342f; /* charcoal heading bars */
 
   --title: 'Instrument Serif', 'Times New Roman', serif;
   --condensed: 'Big Shoulders Display Variable', 'Anton', 'Archivo Variable', sans-serif;
@@ -27,7 +28,6 @@
   --sans: 'Archivo Variable', 'Helvetica Neue', Arial, sans-serif;
   --serif: 'Newsreader Variable', Georgia, 'Times New Roman', serif;
   --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
-  --pixel: 'Silkscreen', var(--mono);
 
   --pad: clamp(0.9rem, 2.2vw, 1.75rem);
   --gap: clamp(0.75rem, 1.6vw, 1.25rem);
@@ -146,7 +146,6 @@ button {
 
 /* Labels: mono capitals, tracked out. */
 .label,
-.bar__label,
 .spec dt {
   font-family: var(--mono);
   font-size: 0.75rem;
@@ -155,14 +154,14 @@ button {
   letter-spacing: 0.08em;
 }
 
-/* Pixel numerals for small counts and indexes. */
-.pixel,
-.bar__label .count {
-  font-family: var(--pixel);
+/* Small numerals for counts and indexes: sharp mono, fixed-width figures. */
+.num,
+.band .count {
+  font-family: var(--mono);
   font-size: 0.6875rem;
-  font-weight: 400;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .small {
@@ -197,7 +196,7 @@ main {
   margin-top: var(--section);
 }
 
-/* A small header row above every block: label left, extras right, hairline below. */
+/* A small row of mono text: the breadcrumbs on project and CV pages. */
 .bar {
   display: flex;
   flex-wrap: wrap;
@@ -207,23 +206,68 @@ main {
   padding-bottom: 0.9rem;
 }
 
-.bar__label {
+/*
+  Band: a solid black heading bar that spans its whole section, so a group still reads as one unit when its
+  contents are offset or staggered. On wide screens the title keeps its brutalist offset *inside* the bar
+  (`--indent`, percent of the section width, set inline).
+*/
+.band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+  padding: 0.4rem 0.8rem 0.35rem;
+  background: var(--band);
+  color: var(--bg);
+}
+
+@media (min-width: 64rem) {
+  .band {
+    padding-left: calc(0.8rem + var(--indent, 0) * 1%);
+  }
+}
+
+.band__label {
   display: flex;
   align-items: baseline;
   gap: 0.75em;
+  margin: 0;
 }
 
 /* Section headings: heavy, angle-cut capitals. */
-.bar__label > span:first-child {
+.band__label > span:first-child {
   font-family: var(--brut);
-  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  font-size: clamp(1.3rem, 2vw, 1.85rem);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.01em;
 }
 
-.bar__label .count {
-  color: var(--muted);
+/* Light grey on charcoal: about 6:1. */
+.band .count,
+.band .muted {
+  color: #b4b4ac;
+}
+
+.band :focus-visible {
+  outline-color: var(--bg);
+}
+
+/* A thin black strip labelling a smaller group (a column, a details panel). */
+.band--mini {
+  display: block;
+  margin: 0 0 0.6rem;
+  padding: 0.15rem 0.5rem 0.1rem;
+  background: var(--band);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* Spec strip: label over value, in columns. */
@@ -355,6 +399,16 @@ a:hover > .tile .tile__sheen {
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 0.3em;
+}
+
+/* Inside a black band */
+.band .toggle button {
+  color: #b4b4ac;
+}
+
+.band .toggle button:hover,
+.band .toggle button[aria-pressed='true'] {
+  color: var(--bg);
 }
 
 /* Reading text */
@@ -578,6 +632,18 @@ html.vt-swap::view-transition-old(root) {
 @media print {
   body::after {
     display: none;
+  }
+
+  /* Bars print as ink text over a rule, not solid black. */
+  .band,
+  .band--mini {
+    background: none;
+    color: var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .band .count {
+    color: var(--muted);
   }
 
   [data-print-hide],
