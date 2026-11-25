@@ -1,0 +1,83 @@
+---
+// One journal image or video. Photos show when `src` is set; videos when `video` is set (a file in public/journal/).
+// Until then a visible placeholder frame with the caption shows where it will go.
+import { Image, getImage } from 'astro:assets';
+
+interface Props {
+  caption: string;
+  alt?: string;
+  src?: ImageMetadata;
+  type?: 'image' | 'video';
+  video?: string;
+  poster?: ImageMetadata;
+}
+const { caption, alt, src, type = 'image', video, poster } = Astro.props;
+const isVideo = type === 'video' || Boolean(video);
+const posterUrl = poster ? (await getImage({ src: poster, width: 960 })).src : undefined;
+const mime = video?.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+---
+
+<figure class="media">
+  {
+    isVideo && video ? (
+      <span class="tile media__frame media__frame--video">
+        <video controls muted loop playsinline preload="metadata" poster={posterUrl} aria-label={alt ?? caption}>
+          <source src={video} type={mime} />
+        </video>
+      </span>
+    ) : !isVideo && src ? (
+      <span class="tile media__frame">
+        <Image class="develop" src={src} alt={alt ?? caption} widths={[480, 960]} sizes="(min-width: 64rem) 30rem, 100vw" />
+      </span>
+    ) : (
+      <span
+        class:list={['media__frame', 'media__placeholder', { 'media__frame--video': isVideo }]}
+        role="img"
+        aria-label={`${isVideo ? 'Video' : 'Image'} to come: ${caption}`}
+      >
+        <span class="mono muted">{isVideo ? 'Video to come' : 'Image to come'}</span>
+      </span>
+    )
+  }
+  <figcaption class="mono muted">{caption}</figcaption>
+</figure>
+
+<style>
+  .media {
+    margin: 0;
+  }
+
+  .media__frame {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+
+  .media__frame--video {
+    aspect-ratio: 16 / 9;
+  }
+
+  .media__frame :global(img),
+  .media__frame video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .media__frame video {
+    background: #0e0e0e;
+  }
+
+  .media__placeholder {
+    display: grid;
+    place-items: center;
+    border: 1px dashed var(--hair);
+    background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(20 20 15 / 0.035) 10px 11px);
+  }
+
+  .media figcaption {
+    margin-top: 0.5rem;
+  }
+</style>

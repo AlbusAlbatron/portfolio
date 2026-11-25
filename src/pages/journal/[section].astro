@@ -1,0 +1,256 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import JournalMedia from '../../components/JournalMedia.astro';
+import { sections } from '../../data/journal';
+
+export async function getStaticPaths() {
+  // Section 1 (About me) is the homepage, so only sections without an `href` get a page here.
+  return sections
+    .filter((s) => !s.href)
+    .map((section) => ({ params: { section: section.slug }, props: { section } }));
+}
+
+const { section } = Astro.props;
+const all = await getCollection('journal', (e) => e.data.section === section.slug);
+
+// Undated entries (a profile, say) come first; dated ones follow in date order, grouped by week.
+const sorted = [...all].sort((a, b) => {
+  const da = a.data.date?.getTime() ?? -Infinity;
+  const db = b.data.date?.getTime() ?? -Infinity;
+  return da - db || a.data.order - b.data.order;
+});
+const rendered = await Promise.all(sorted.map(async (e) => ({ entry: e, Content: (await render(e)).Content })));
+
+const dateLabel = (d: Date) =>
+  new Intl.DateTimeFormat('en-IE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+type Item = (typeof rendered)[number];
+const groups: { label: string | null; items: Item[] }[] = [];
+for (const item of rendered) {
+  const { week, date } = item.entry.data;
+  const label = week && date ? `Week ${week} · ${dateLabel(date)}` : null;
+  const last = groups[groups.length - 1];
+  if (last && last.label === label) last.items.push(item);
+  else groups.push({ label, items: [item] });
+}
+
+const pages = sections.filter((s) => !s.href);
+const at = pages.findIndex((s) => s.slug === section.slug);
+const prev = pages[at - 1];
+const next = pages[at + 1];
+---
+
+<Base title={`${section.title} · Journal`} description={section.purpose}>
+  <div class="page">
+    <div class="bar mono crumbs">
+      <p><a class="link" href="/journal">Journal</a> / {section.no}</p>
+      <p class="muted">CareersLab portfolio</p>
+    </div>
+
+    <header class="head">
+      <h1 class="title section-title dust-title outdent" data-dust>{section.title}</h1>
+      <p class="lede head__lede indent-2">{section.purpose}</p>
+      <div class="reflect indent-2">
+        <p class="band--mini">What I reflect on</p>
+        <ul class="small">
+          {section.prompts.map((p) => <li>{p}</li>)}
+        </ul>
+      </div>
+    </header>
+
+    {
+      groups.length === 0 && (
+        <section class="empty" aria-label="No entries yet">
+          <p class="lede">Reflections for this section will be added through the year.</p>
+          <div class="media-grid">
+            <JournalMedia caption={`Photos for ${section.title.toLowerCase()}`} />
+          </div>
+        </section>
+      )
+    }
+
+    {
+      groups.map((g, gi) => (
+        <section class="group" aria-label={g.label ?? section.title}>
+          {g.label && (
+            <div class="band" style={`--indent: ${gi % 2 ? 8.333 : 16.667}`}>
+              <h2 class="band__label">
+                <span>{g.label.split(' · ')[0]}</span>
+                <span class="count">{g.label.split(' · ')[1]}</span>
+              </h2>
+            </div>
+          )}
+          {g.items.map(({ entry, Content }) => (
+            <article class="entry" id={entry.id}>
+              <header class="entry__head">
+                <h3 class="entry__title display" data-dust>
+                  {entry.data.title}
+                </h3>
+                {entry.data.speaker && <p class="mono muted">{entry.data.speaker}</p>}
+              </header>
+              <div class="entry__body">
+                <div class="prose">
+                  <Content />
+                </div>
+                {entry.data.media.length > 0 && (
+                  <div class="media-grid">
+                    {entry.data.media.map((m) => (
+                      <JournalMedia caption={m.caption} alt={m.alt} src={m.src} type={m.type} video={m.video} poster={m.poster} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </section>
+      ))
+    }
+
+    <nav class="pager" aria-label="Journal sections">
+      {
+        prev ? (
+          <a class="pager__link" href={`/journal/${prev.slug}`}>
+            <span class="mono muted">← {prev.no}</span>
+            <span class="display" data-dust>
+              {prev.title}
+            </span>
+          </a>
+        ) : (
+          <a class="pager__link" href="/journal">
+            <span class="mono muted">← Journal</span>
+            <span class="display" data-dust>
+              All sections
+            </span>
+          </a>
+        )
+      }
+      {
+        next && (
+          <a class="pager__link pager__link--next" href={`/journal/${next.slug}`}>
+            <span class="mono muted">{next.no} →</span>
+            <span class="display" data-dust>
+              {next.title}
+            </span>
+          </a>
+        )
+      }
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .crumbs {
+    padding-top: 1rem;
+  }
+
+  .head {
+    padding-top: clamp(2.5rem, 8vw, 6rem);
+  }
+
+  /* Section names are long, so the title runs smaller than on other pages. */
+  .section-title {
+    font-size: clamp(3rem, 9vw, 8.5rem);
+    max-width: 16ch;
+  }
+
+  .head__lede {
+    max-width: 36ch;
+    margin-top: 1.25rem;
+  }
+
+  .reflect {
+    max-width: 26rem;
+    margin-top: 2rem;
+  }
+
+  .reflect ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  .reflect li + li {
+    margin-top: 0.25rem;
+  }
+
+  .empty,
+  .group {
+    margin-top: clamp(4rem, 9vw, 7rem);
+  }
+
+  .entry {
+    padding-block: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .entry + .entry {
+    border-top: 1px solid var(--hair);
+  }
+
+  .entry__head {
+    margin-bottom: 1rem;
+  }
+
+  .entry__title {
+    width: fit-content;
+    font-size: clamp(1.75rem, 3.4vw, 3rem);
+    line-height: 0.95;
+  }
+
+  .entry__head .mono {
+    margin-top: 0.4rem;
+  }
+
+  .entry__body {
+    display: grid;
+    gap: 1.5rem var(--gap);
+  }
+
+  @media (min-width: 64rem) {
+    .entry__body {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      align-items: start;
+    }
+  }
+
+  .entry .prose :global(h3) {
+    margin-top: 1.75rem;
+  }
+
+  .media-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .empty .media-grid {
+    max-width: 28rem;
+    margin-top: 1.5rem;
+  }
+
+  .pager {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: clamp(4rem, 9vw, 7rem);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--hair);
+  }
+
+  .pager__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-decoration: none;
+  }
+
+  .pager__link .display {
+    width: fit-content;
+    font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+    line-height: 1;
+  }
+
+  .pager__link--next {
+    margin-left: auto;
+    align-items: flex-end;
+    text-align: right;
+  }
+</style>

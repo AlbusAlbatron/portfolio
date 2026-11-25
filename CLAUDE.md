@@ -30,9 +30,9 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
     pre-baked periodic noise tile and per-pixel scatter; negative times are scattered, never lumped at 0). Pixels are
     bucketed by time and painted as 1x1 device-pixel squares on a GPU-backed canvas, only the ones due each frame.
     Grains (≤ `GRAIN_BUDGET`, mostly 0.5–2px squares, bigger flakes round, five tones, a few twinkling) are born at
-    vanishing ink pixels and ride a slow curl-noise air current; no gravity. Leaving fades the cover out while grains
-    fly home and fade (one draw per frame, so big text doesn't lag). Very large text is scheduled at a coarser
-    scale (`WORK_BUDGET`) and setup runs as a few linear passes, so it starts quickly. Setup is async, time-sliced (`SLICE_MS`, ink read in strips) and cancellable. One fixed
+    vanishing ink pixels and ride a slow curl-noise air current; no gravity. Leaving uncovers pixels in reverse while
+    grains fly home. (A faster variant, coarser scheduling for big text plus a faded reassembly, was tried and
+    reverted by Alby: it looked much worse.) Setup is async, time-sliced (`SLICE_MS`, ink read in strips) and cancellable. One fixed
     viewport canvas, shown only while animating, sits under the grain overlay. `[data-dust]` elements must not move
     or reflow on hover (the list-row letter ripple was removed for this). Used on nav, header name, page titles
     (`.dust-title`), project titles, Overview/footer links and the footer name; never body copy. Alby rejected SVG
@@ -99,6 +99,24 @@ See AGENTS.md for Astro dev-server commands. Check work with `npx astro check` a
 - `compressHTML` is off: it strips the space between a line-wrapped word and a following inline tag. Markup
   where whitespace would show (`Typed`'s letter spans) is kept on one line.
 - `public/og.png` and `public/apple-touch-icon.png` are static and still use an older look; regenerate them.
+
+## Journal (CareersLab portfolio)
+- Follows the CareersLab professional portfolio structure (Week 1 slides pp. 18–23): 7 sections defined in
+  `src/data/journal.ts` (number, slug, title, first-person purpose, reflection prompts). Section 1 "About me" is the
+  homepage (`href: '/'`); sections 2–7 get `/journal/<slug>` pages (`src/pages/journal/[section].astro`), indexed at
+  `/journal`. Nav: Work · About · Journal · CV; also linked from the home Overview.
+- Entries: `src/content/journal/*.md` (schema in `content.config.ts`): `title`, `section` (slug), optional
+  `date` + `week` (dated entries are grouped under a charcoal week band; undated ones, e.g. the profile, come first),
+  `speaker`, `summary` (quote it if it contains a colon), `order`, `media[]`.
+- Images: each `media` item renders the photo when `src` is set (files in `src/assets/journal/`, path relative to the
+  md), otherwise a visible hatched "Image to come" placeholder with the caption (`JournalMedia.astro`). To add a
+  photo, put the file in `src/assets/journal/` and add `src: ../../assets/journal/<file>` (+ `alt`) to the item.
+  Video slots: `type: video` shows a 16:9 "Video to come" placeholder; to add the clip, drop the mp4/webm in
+  `public/journal/` and set `video: /journal/<file>` (+ optional `poster:` image in `src/assets/journal/`). Videos
+  play with controls, muted, never autoplay. (The FPV entry in Beyond the Classroom has a pending crash-footage slot.)
+- Copy: Alby's notes rewritten in his voice; facts only from his notes or `cv.ts`. Agreed names: Week 2 residency
+  panel = Yasmin and Mark; "Ciarán"; ISE's business development lead unnamed; the startup with classmate Fionn is
+  mentioned only in general terms. Values examples in `values.md` were drafted from the CV for him to check.
 
 ## CV — layout
 - `src/pages/cv.astro`: each section is one "sheet" (`.bar` heading with Tanker title + pixel number, a hairline,

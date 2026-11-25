@@ -1,0 +1,120 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Typed from '../../components/Typed.astro';
+import { sections } from '../../data/journal';
+
+const entries = await getCollection('journal');
+const countFor = (slug: string) => entries.filter((e) => e.data.section === slug).length;
+---
+
+<Base
+  title="Journal"
+  description="Alby McNamara's professional development journal, following the CareersLab portfolio structure."
+>
+  <div class="page">
+    <header class="head">
+      <h1 class="title dust-title outdent" data-dust>Journal</h1>
+      <Typed
+        class="lede head__lede indent-2"
+        text="My professional development journal for CareersLab: what I'm learning from speakers, industry and my own work, and where I'm heading next."
+      />
+    </header>
+
+    <section class="section" aria-labelledby="sections">
+      <div class="band" style="--indent: 16.667">
+        <h2 id="sections" class="band__label"><span>Portfolio sections</span><span class="count">7</span></h2>
+      </div>
+      <ol class="list">
+        {
+          sections.map((s) => {
+            const n = countFor(s.slug);
+            const href = s.href ?? `/journal/${s.slug}`;
+            const status = s.href ? 'Homepage' : n ? `${n} ${n === 1 ? 'entry' : 'entries'}` : 'Coming soon';
+            return (
+              <li>
+                <a class="row" href={href}>
+                  <span class="num muted">{s.no}</span>
+                  <span class="row__title display" data-dust>
+                    {s.title}
+                  </span>
+                  <span class="row__purpose muted">{s.purpose}</span>
+                  <span class="row__status mono">{status} →</span>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ol>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .head {
+    padding-top: clamp(3rem, 9vw, 7rem);
+  }
+
+  .head :global(.head__lede) {
+    max-width: 34ch;
+    margin-top: 1.25rem;
+  }
+
+  .section {
+    margin-top: clamp(3.5rem, 8vw, 6rem);
+  }
+
+  .list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .list li {
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: 0.3rem var(--gap);
+    align-items: baseline;
+    padding-block: 1.1rem;
+    text-decoration: none;
+  }
+
+  .row__title {
+    width: fit-content;
+    font-size: clamp(1.9rem, 4vw, 3.4rem);
+    line-height: 0.95;
+  }
+
+  .row__purpose,
+  .row__status {
+    grid-column: 2;
+  }
+
+  .row:hover .row__status {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  @media (min-width: 64rem) {
+    .row {
+      grid-template-columns: 3rem minmax(0, 1.2fr) minmax(0, 1.3fr) 9rem;
+    }
+
+    .row__purpose,
+    .row__status {
+      grid-column: auto;
+    }
+
+    .row__purpose {
+      max-width: 32rem;
+    }
+
+    .row__status {
+      text-align: right;
+    }
+  }
+</style>

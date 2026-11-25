@@ -454,6 +454,19 @@ a:hover > .tile .tile__sheen {
   margin-top: 0.5rem;
 }
 
+/* Pull quotes in reading text: the newspaper serif, larger, with a rule beside them. */
+.prose blockquote {
+  margin: 1.75rem 0;
+  padding-left: 1.1rem;
+  border-left: 2px solid var(--ink);
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: 1.35rem;
+  font-weight: 450;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
 .prose strong {
   font-weight: 600;
 }
